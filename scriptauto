@@ -1,12 +1,12 @@
--- Auto-Buy UI with Utensils auto-buy all
+-- Categorical Auto-Buy UI (Utensils All + Plants)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
 
 -- Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 280, 0, 260)
-frame.Position = UDim2.new(0.5, -140, 0.55, 0)
+frame.Size = UDim2.new(0, 300, 0, 280)
+frame.Position = UDim2.new(0.5, -150, 0.55, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
@@ -56,17 +56,20 @@ local speed = 1
 local currentCategory = "Utensils"
 local currentItemIndex = 1
 
--- Items per category
+-- Define categories with items
 local categories = {
     ["Utensils"] = {
-        {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
-        {name="Item 2", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
-        {name="Item 3", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
-        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
+        {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
+        {name="Item 2", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
+        {name="Item 3", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
+        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
+        {name="Item 5", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
+        {name="Item 6", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
+        {name="Item 7", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
     },
     ["Plants"] = {
         {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        -- Add more Plant items here
+        -- add more Plants here if needed
     }
 }
 
@@ -112,14 +115,14 @@ task.spawn(function()
         if auto then
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
             if currentCategory == "Utensils" then
-                -- Buy all Utensil items
+                -- BUY ALL Utensils ITEMS
                 for _, item in pairs(categories["Utensils"]) do
                     pcall(function()
                         remote:FireServer(unpack(item.args))
                     end)
                 end
             else
-                -- Buy selected Plant
+                -- BUY SELECTED Plant ITEM
                 local itemData = categories["Plants"][currentItemIndex]
                 pcall(function()
                     remote:FireServer(unpack(itemData.args))
