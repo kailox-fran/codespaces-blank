@@ -1,0 +1,11 @@
+-- Auto-buy script
+while true do
+    for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                        pcall(function()
+                                        fireproximityprompt(v)
+                                                    end)
+                                                            end
+                                                                end
+                                                                    wait(1)
+                                                                    end
