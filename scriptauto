@@ -1,22 +1,24 @@
--- Advanced Auto Buy UI (Mobile Friendly)
-
+-- Advanced Auto-Buy UI (3 Items)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
 
+-- Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 220, 0, 160)
-frame.Position = UDim2.new(0.5, -110, 0.65, 0)
+frame.Size = UDim2.new(0, 250, 0, 220)
+frame.Position = UDim2.new(0.5, -125, 0.6, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
 
+-- Title
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
 title.Text = "Auto Buy UI"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 
+-- Toggle Button
 local toggle = Instance.new("TextButton", frame)
 toggle.Size = UDim2.new(1, -20, 0, 40)
 toggle.Position = UDim2.new(0, 10, 0, 40)
@@ -24,21 +26,50 @@ toggle.Text = "Auto Buy: OFF"
 toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
 toggle.TextColor3 = Color3.new(1,1,1)
 
+-- Item Selector
+local itemSelector = Instance.new("TextButton", frame)
+itemSelector.Size = UDim2.new(1, -20, 0, 40)
+itemSelector.Position = UDim2.new(0, 10, 0, 90)
+itemSelector.Text = "Item: 1"
+itemSelector.BackgroundColor3 = Color3.fromRGB(50,50,50)
+itemSelector.TextColor3 = Color3.new(1,1,1)
+
+-- Speed Button
 local speedBtn = Instance.new("TextButton", frame)
 speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 90)
+speedBtn.Position = UDim2.new(0, 10, 0, 140)
 speedBtn.Text = "Speed: 1s"
 speedBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 speedBtn.TextColor3 = Color3.new(1,1,1)
 
+-- Variables
 local auto = false
 local speed = 1
+local currentItem = 1
 
+-- Define your 3 items here (from RSPY)
+local items = {
+    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9} },   -- First item
+    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10} },  -- Second item
+    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2} }    -- Third item
+}
+
+-- Toggle Logic
 toggle.MouseButton1Click:Connect(function()
     auto = not auto
     toggle.Text = auto and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
+-- Item Selector Logic
+itemSelector.MouseButton1Click:Connect(function()
+    currentItem = currentItem + 1
+    if currentItem > #items then
+        currentItem = 1
+    end
+    itemSelector.Text = "Item: " .. currentItem
+end)
+
+-- Speed Change Logic
 speedBtn.MouseButton1Click:Connect(function()
     if speed == 1 then
         speed = 2
@@ -50,19 +81,14 @@ speedBtn.MouseButton1Click:Connect(function()
     speedBtn.Text = "Speed: " .. speed .. "s"
 end)
 
+-- Auto-Buy Logic
 task.spawn(function()
     while true do
         if auto then
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("ProximityPrompt") then
-                    local name = v.Parent.Name:lower()
-                    if name:find("shop") or name:find("buy") or name:find("merchant") then
-                        pcall(function()
-                            fireproximityprompt(v)
-                        end)
-                    end
-                end
-            end
+            local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
+            pcall(function()
+                remote:FireServer(unpack(items[currentItem].args))
+            end)
         end
         task.wait(speed)
     end
