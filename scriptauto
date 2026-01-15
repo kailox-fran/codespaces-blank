@@ -1,12 +1,12 @@
--- Advanced Auto-Buy UI (3 Items)
+-- Auto-Buy UI with Utensils auto-buy all
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
 
 -- Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 250, 0, 220)
-frame.Position = UDim2.new(0.5, -125, 0.6, 0)
+frame.Size = UDim2.new(0, 280, 0, 260)
+frame.Position = UDim2.new(0.5, -140, 0.55, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
@@ -26,18 +26,26 @@ toggle.Text = "Auto Buy: OFF"
 toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
 toggle.TextColor3 = Color3.new(1,1,1)
 
--- Item Selector
-local itemSelector = Instance.new("TextButton", frame)
-itemSelector.Size = UDim2.new(1, -20, 0, 40)
-itemSelector.Position = UDim2.new(0, 10, 0, 90)
-itemSelector.Text = "Item: 1"
-itemSelector.BackgroundColor3 = Color3.fromRGB(50,50,50)
-itemSelector.TextColor3 = Color3.new(1,1,1)
+-- Category Button
+local categoryBtn = Instance.new("TextButton", frame)
+categoryBtn.Size = UDim2.new(1, -20, 0, 40)
+categoryBtn.Position = UDim2.new(0, 10, 0, 90)
+categoryBtn.Text = "Category: Utensils"
+categoryBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+categoryBtn.TextColor3 = Color3.new(1,1,1)
+
+-- Item Selector Button (for Plants)
+local itemBtn = Instance.new("TextButton", frame)
+itemBtn.Size = UDim2.new(1, -20, 0, 40)
+itemBtn.Position = UDim2.new(0, 10, 0, 140)
+itemBtn.Text = "Item: 1"
+itemBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+itemBtn.TextColor3 = Color3.new(1,1,1)
 
 -- Speed Button
 local speedBtn = Instance.new("TextButton", frame)
 speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 140)
+speedBtn.Position = UDim2.new(0, 10, 0, 190)
 speedBtn.Text = "Speed: 1s"
 speedBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 speedBtn.TextColor3 = Color3.new(1,1,1)
@@ -45,13 +53,21 @@ speedBtn.TextColor3 = Color3.new(1,1,1)
 -- Variables
 local auto = false
 local speed = 1
-local currentItem = 1
+local currentCategory = "Utensils"
+local currentItemIndex = 1
 
--- Define your 3 items here (from RSPY)
-local items = {
-    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9} },   -- First item
-    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10} },  -- Second item
-    { args = {"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2} }    -- Third item
+-- Items per category
+local categories = {
+    ["Utensils"] = {
+        {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
+        {name="Item 2", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
+        {name="Item 3", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
+        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
+    },
+    ["Plants"] = {
+        {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
+        -- Add more Plant items here
+    }
 }
 
 -- Toggle Logic
@@ -60,35 +76,55 @@ toggle.MouseButton1Click:Connect(function()
     toggle.Text = auto and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- Item Selector Logic
-itemSelector.MouseButton1Click:Connect(function()
-    currentItem = currentItem + 1
-    if currentItem > #items then
-        currentItem = 1
+-- Category Switch Logic
+categoryBtn.MouseButton1Click:Connect(function()
+    if currentCategory == "Utensils" then
+        currentCategory = "Plants"
+    else
+        currentCategory = "Utensils"
     end
-    itemSelector.Text = "Item: " .. currentItem
+    currentItemIndex = 1
+    categoryBtn.Text = "Category: " .. currentCategory
+    itemBtn.Text = "Item: " .. currentItemIndex
 end)
 
--- Speed Change Logic
-speedBtn.MouseButton1Click:Connect(function()
-    if speed == 1 then
-        speed = 2
-    elseif speed == 2 then
-        speed = 3
-    else
-        speed = 1
+-- Item Selector Logic (only affects Plants)
+itemBtn.MouseButton1Click:Connect(function()
+    if currentCategory == "Plants" then
+        currentItemIndex = currentItemIndex + 1
+        if currentItemIndex > #categories[currentCategory] then
+            currentItemIndex = 1
+        end
+        itemBtn.Text = "Item: " .. currentItemIndex
     end
+end)
+
+-- Speed Button Logic
+speedBtn.MouseButton1Click:Connect(function()
+    speed = speed + 1
+    if speed > 3 then speed = 1 end
     speedBtn.Text = "Speed: " .. speed .. "s"
 end)
 
--- Auto-Buy Logic
+-- Auto-Buy Loop
 task.spawn(function()
     while true do
         if auto then
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
-            pcall(function()
-                remote:FireServer(unpack(items[currentItem].args))
-            end)
+            if currentCategory == "Utensils" then
+                -- Buy all Utensil items
+                for _, item in pairs(categories["Utensils"]) do
+                    pcall(function()
+                        remote:FireServer(unpack(item.args))
+                    end)
+                end
+            else
+                -- Buy selected Plant
+                local itemData = categories["Plants"][currentItemIndex]
+                pcall(function()
+                    remote:FireServer(unpack(itemData.args))
+                end)
+            end
         end
         task.wait(speed)
     end
