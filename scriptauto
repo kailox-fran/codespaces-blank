@@ -1,4 +1,4 @@
--- Categorical Auto-Buy UI (Utensils All + Plants)
+-- Categorical Auto-Buy UI (Sequential Utensils)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
@@ -55,6 +55,8 @@ local auto = false
 local speed = 1
 local currentCategory = "Utensils"
 local currentItemIndex = 1
+local utensilBuyAmount = 4 -- number of each utensil to buy sequentially
+local delayBetweenBuys = 0.2 -- small delay between each buy to ensure server counts it
 
 -- Define categories with items
 local categories = {
@@ -69,7 +71,7 @@ local categories = {
     },
     ["Plants"] = {
         {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        -- add more Plants here if needed
+        -- Add more plants here if needed
     }
 }
 
@@ -114,15 +116,19 @@ task.spawn(function()
     while true do
         if auto then
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
+            
             if currentCategory == "Utensils" then
-                -- BUY ALL Utensils ITEMS
+                -- BUY each utensil sequentially
                 for _, item in pairs(categories["Utensils"]) do
-                    pcall(function()
-                        remote:FireServer(unpack(item.args))
-                    end)
+                    for i = 1, utensilBuyAmount do
+                        pcall(function()
+                            remote:FireServer(unpack(item.args))
+                        end)
+                        task.wait(delayBetweenBuys)
+                    end
                 end
             else
-                -- BUY SELECTED Plant ITEM
+                -- BUY selected Plant
                 local itemData = categories["Plants"][currentItemIndex]
                 pcall(function()
                     remote:FireServer(unpack(itemData.args))
