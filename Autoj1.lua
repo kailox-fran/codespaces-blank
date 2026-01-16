@@ -1,14 +1,15 @@
--- AutoServerHop LocalScript
--- Place this in StarterPlayerScripts
+-- AutoServerHop LocalScript (Live Servers)
+-- Place this in a LocalScript or run via loadstring
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
-local player = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
+local player = Players.LocalPlayer
 local PlaceId = game.PlaceId
 local currentServerId = game.JobId
 local autoHop = false
-local JobIdBlacklist = {} -- to avoid hopping to the same server
+local JobIdBlacklist = {}
 
 -- ====== UI ======
 local gui = Instance.new("ScreenGui")
@@ -62,21 +63,43 @@ statusLabel.Text = "Status: Idle"
 statusLabel.TextScaled = true
 statusLabel.Parent = frame
 
--- ====== Server Hop Function ======
--- This function currently simulates server hopping
--- Replace with HttpService call if testing in Studio with HTTP enabled
+-- ====== Server Hop Functions ======
+local function getServers()
+    local servers = {}
+    local success, response = pcall(function()
+        return HttpService:GetAsync("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+    end)
+    if success then
+        local data = HttpService:JSONDecode(response)
+        if data and data.data then
+            for _, server in pairs(data.data) do
+                if server.playing < server.maxPlayers and server.id ~= currentServerId and not table.find(JobIdBlacklist, server.id) then
+                    table.insert(servers, server.id)
+                end
+            end
+        end
+    else
+        warn("Failed to fetch servers")
+    end
+    return servers
+end
+
 local function hopServer()
-    -- Fake server hop simulation
-    statusLabel.Text = "Hopping server..."
-    statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+    statusLabel.Text = "Finding a new server..."
+    statusLabel.TextColor3 = Color3.fromRGB(255,255,0)
+
+    local servers = getServers()
+    if #servers == 0 then
+        statusLabel.Text = "No available servers!"
+        statusLabel.TextColor3 = Color3.fromRGB(255,0,0)
+        return
+    end
+
+    local nextServer = servers[math.random(1, #servers)]
     table.insert(JobIdBlacklist, currentServerId)
-    
-    -- Wait a moment to simulate teleport delay
-    wait(2)
-    
-    -- Update status
-    statusLabel.Text = "Server hopped!"
-    statusLabel.TextColor3 = Color3.fromRGB(0,200,255)
+    statusLabel.Text = "Teleporting..."
+    statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+    TeleportService:TeleportToPlaceInstance(PlaceId, nextServer, player)
 end
 
 -- ====== Button Logic ======
@@ -107,8 +130,5 @@ end)
 rejoinButton.MouseButton1Click:Connect(function()
     statusLabel.Text = "Rejoining current server..."
     statusLabel.TextColor3 = Color3.fromRGB(0,255,0)
-    -- Simulate rejoin (replace with TeleportService call in Studio)
-    wait(2)
-    statusLabel.Text = "Rejoined server!"
-    statusLabel.TextColor3 = Color3.fromRGB(0,200,255)
+    TeleportService:TeleportToPlaceInstance(PlaceId, currentServerId, player)
 end)
