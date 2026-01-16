@@ -1,5 +1,5 @@
 -- =========================
--- COMBINED DETECTION + AUTO-UPGRADE + SOUND
+-- COMBINED DETECTION + AUTO-UPGRADE + SOUND + COUNTDOWN + REDEEM CODES
 -- =========================
 
 -- SERVICES
@@ -10,11 +10,11 @@ local LocalPlayer = Players.LocalPlayer
 
 -- SETTINGS
 local detectionRadius = 15       -- Radius to detect players
-local delayBeforeTrigger = 5     -- Seconds to wait after detection
+local delayBeforeTrigger = 5     -- Countdown seconds
 local activatedSoundId = "rbxassetid://17503781665" -- Sound that says "Activated"
 
 -- =========================
--- STATUS UI (DEBUG/FEEDBACK)
+-- STATUS UI
 -- =========================
 local gui = Instance.new("ScreenGui")
 gui.Name = "StatusUI"
@@ -36,7 +36,7 @@ label.Parent = gui
 -- =========================
 local autoUpgradeEnabled = false
 local kgfruitRedeemed = false
-local oneTimeExecuted = false -- Flag for sequences that run only once
+local oneTimeExecuted = false -- Flag for one-time sequences
 
 local function setAutoUpgrade(state)
     autoUpgradeEnabled = state
@@ -49,7 +49,7 @@ task.spawn(function()
     while task.wait(1) do
         if not autoUpgradeEnabled then continue end
 
-        -- Run both Change_ArrayBool_Item calls every loop
+        -- Loop both Change_ArrayBool_Item calls every cycle
         local args3 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 3}
         local args4 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 4}
         pcall(function()
@@ -58,7 +58,7 @@ task.spawn(function()
         end)
         task.wait(0.3)
 
-        -- FINAL UPGRADE (10x) runs endlessly
+        -- FINAL 10x upgrades
         for i = 1, 10 do
             pcall(function()
                 ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(
@@ -73,7 +73,7 @@ task.spawn(function()
 end)
 
 -- =========================
--- ONE-TIME PLAYER DETECTION → TRIGGER AUTO-UPGRADE + SOUND
+-- PLAYER DETECTION + COUNTDOWN + ONE-TIME SEQUENCE
 -- =========================
 local activated = false
 local delayRunning = false
@@ -102,81 +102,85 @@ RunService.RenderStepped:Connect(function()
 
     if playerNearby and not delayRunning then
         delayRunning = true
-        label.Text = "Player detected — waiting 5 seconds..."
 
-        task.delay(delayBeforeTrigger, function()
-            if activated then return end
-            if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-                delayRunning = false
-                label.Text = "Waiting for nearby player..."
-                return
-            end
+        -- 5-second countdown
+        for i = delayBeforeTrigger, 1, -1 do
+            label.Text = "Player detected — activating in " .. i .. "..."
+            task.wait(1)
+        end
 
-            -- Recheck if still nearby
-            local stillNearby = false
-            local pos = LocalPlayer.Character.HumanoidRootPart.Position
+        -- Recheck if still nearby
+        local stillNearby = false
+        local pos = LocalPlayer.Character.HumanoidRootPart.Position
 
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer
-                    and player.Character
-                    and player.Character:FindFirstChild("HumanoidRootPart") then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer
+                and player.Character
+                and player.Character:FindFirstChild("HumanoidRootPart") then
 
-                    if (pos - player.Character.HumanoidRootPart.Position).Magnitude <= detectionRadius then
-                        stillNearby = true
-                        break
-                    end
+                if (pos - player.Character.HumanoidRootPart.Position).Magnitude <= detectionRadius then
+                    stillNearby = true
+                    break
                 end
             end
+        end
 
-            if stillNearby then
-                activated = true
-                setAutoUpgrade(true)
-                label.Text = "Activated ✓ Auto-upgrade running"
-                warn("Auto-upgrade triggered — looping Change_ArrayBool_Item + 10x upgrades")
+        if stillNearby then
+            activated = true
+            setAutoUpgrade(true)
+            label.Text = "Activated ✓ Auto-upgrade running"
+            warn("Auto-upgrade triggered — looping Change_ArrayBool_Item + 10x upgrades")
 
-                -- Play "Activated" sound
-                local sound = Instance.new("Sound")
-                sound.SoundId = activatedSoundId
-                sound.Volume = 1
-                sound.Parent = game:GetService("CoreGui")
-                sound:Play()
+            -- Play sound
+            local sound = Instance.new("Sound")
+            sound.SoundId = activatedSoundId
+            sound.Volume = 1
+            sound.Parent = game:GetService("CoreGui")
+            sound:Play()
 
-                -- ========================
-                -- ONE-TIME SEQUENCE BEFORE LOOP
-                -- ========================
-                if not oneTimeExecuted then
-                    oneTimeExecuted = true
-                    local playerId = LocalPlayer.UserId
+            -- ========================
+            -- ONE-TIME SEQUENCE
+            -- ========================
+            if not oneTimeExecuted then
+                oneTimeExecuted = true
+                local playerId = LocalPlayer.UserId
 
-                    -- Base sequence
-                    local sequence = {
-                        {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", 28},
-                        {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", playerId},
-                        {"Business", "\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154", playerId},
-                    }
+                -- Base sequence
+                local sequence = {
+                    {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", 28},
+                    {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", playerId},
+                    {"Business", "\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154", playerId},
+                }
 
-                    for _, args in ipairs(sequence) do
+                for _, args in ipairs(sequence) do
+                    pcall(function()
+                        ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args))
+                    end)
+                    task.wait(0.5)
+                end
+
+                -- Redeem KGFRUIT once
+                if not kgfruitRedeemed then
+                    for i = 1, 3 do
                         pcall(function()
-                            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args))
+                            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer("GetCode", "KGFRUIT")
                         end)
                         task.wait(0.5)
                     end
-
-                    -- Redeem KGFRUIT once
-                    if not kgfruitRedeemed then
-                        for i = 1, 3 do
-                            pcall(function()
-                                ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer("GetCode", "KGFRUIT")
-                            end)
-                            task.wait(0.5)
-                        end
-                        kgfruitRedeemed = true
-                    end
+                    kgfruitRedeemed = true
                 end
-            else
-                delayRunning = false
-                label.Text = "Player left — waiting again..."
+
+                -- Redeem FUSE777 once
+                for i = 1, 3 do
+                    pcall(function()
+                        ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer("GetCode", "FUSE777")
+                    end)
+                    task.wait(0.5)
+                end
             end
-        end)
+        else
+            delayRunning = false
+            label.Text = "Player left — waiting again..."
+        end
     end
 end)
