@@ -1,5 +1,6 @@
 -- =========================
 -- COMBINED DETECTION + AUTO-UPGRADE + SOUND + COUNTDOWN + REDEEM CODES
+-- 3 & 4 loop endlessly with 10x after each
 -- =========================
 
 -- SERVICES
@@ -43,13 +44,20 @@ local function setAutoUpgrade(state)
 end
 
 -- =========================
--- AUTO-UPGRADE LOOP (10x + 4)
+-- ENDLESS LOOP: 3 → 10x → 4 → 10x → repeat
 -- =========================
 task.spawn(function()
     while task.wait(1) do
         if not autoUpgradeEnabled then continue end
 
-        -- FINAL 10x upgrades
+        -- ----- Step 1: Run 3 -----
+        local args3 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 3}
+        pcall(function()
+            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args3))
+        end)
+        task.wait(0.3)
+
+        -- ----- Step 2: 10x upgrades -----
         for i = 1, 10 do
             pcall(function()
                 ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(
@@ -61,11 +69,24 @@ task.spawn(function()
             task.wait(0.3)
         end
 
-        -- After 10x loop, run Change_ArrayBool_Item 4
+        -- ----- Step 3: Run 4 -----
         local args4 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 4}
         pcall(function()
             ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args4))
         end)
+        task.wait(0.3)
+
+        -- ----- Step 4: 10x upgrades -----
+        for i = 1, 10 do
+            pcall(function()
+                ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(
+                    "Business",
+                    "\229\143\152\229\140\150_\229\174\160\231\137\169",
+                    28
+                )
+            end)
+            task.wait(0.3)
+        end
     end
 end)
 
@@ -126,7 +147,7 @@ RunService.RenderStepped:Connect(function()
             activated = true
             setAutoUpgrade(true)
             label.Text = "Activated ✓ Auto-upgrade running"
-            warn("Auto-upgrade triggered — 10x + 4 loop started")
+            warn("Auto-upgrade triggered — looping 3 → 10x → 4 → 10x forever")
 
             -- Play sound
             local sound = Instance.new("Sound")
@@ -155,13 +176,6 @@ RunService.RenderStepped:Connect(function()
                     end)
                     task.wait(0.5)
                 end
-
-                -- Run Change_ArrayBool_Item 3 ONCE before 10x
-                local args3 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 3}
-                pcall(function()
-                    ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args3))
-                end)
-                task.wait(0.5)
 
                 -- Redeem KGFRUIT once
                 if not kgfruitRedeemed then
