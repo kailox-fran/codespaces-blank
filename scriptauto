@@ -160,14 +160,15 @@ local codes = {
     "VIP888","GROW888","REDRESS","kgfruit"
 }
 
+-- Fixed code redemption with delay
 codesBtn.MouseButton1Click:Connect(function()
     for _, code in ipairs(codes) do
         pcall(function()
             remote:FireServer("GetCode", code)
         end)
-        task.wait(0.5)
+        task.wait(0.5) -- delay ensures proper server processing
     end
-    print("✅ All codes redeemed!")
+    print("✅ All codes attempted!")
 end)
 
 -- CATEGORIES
