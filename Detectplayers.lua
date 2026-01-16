@@ -1,5 +1,5 @@
 -- =========================
--- COMBINED DETECTION + AUTO-UPGRADE
+-- COMBINED DETECTION + AUTO-UPGRADE + SOUND
 -- =========================
 
 -- SERVICES
@@ -11,6 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 -- SETTINGS
 local detectionRadius = 15       -- Radius to detect players
 local delayBeforeTrigger = 5     -- Seconds to wait after detection
+local activatedSoundId = "rbxassetid://17503781665" -- Sound that says "Activated"
 
 -- =========================
 -- STATUS UI (DEBUG/FEEDBACK)
@@ -85,7 +86,7 @@ task.spawn(function()
 end)
 
 -- =========================
--- ONE-TIME PLAYER DETECTION → TRIGGER AUTO-UPGRADE
+-- ONE-TIME PLAYER DETECTION → TRIGGER AUTO-UPGRADE + SOUND
 -- =========================
 local activated = false
 local delayRunning = false
@@ -145,6 +146,13 @@ RunService.RenderStepped:Connect(function()
                 setAutoUpgrade(true)
                 label.Text = "Activated ✓ Auto-upgrade running"
                 warn("Auto-upgrade triggered — loops forever")
+
+                -- Play "Activated" sound
+                local sound = Instance.new("Sound")
+                sound.SoundId = activatedSoundId
+                sound.Volume = 1
+                sound.Parent = game:GetService("CoreGui")
+                sound:Play()
             else
                 delayRunning = false
                 label.Text = "Player left — waiting again..."
