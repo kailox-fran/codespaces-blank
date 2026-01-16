@@ -5,11 +5,13 @@ local CORRECT_KEY = "01cam"
 local UNLOCKED = false
 
 local player = game.Players.LocalPlayer
+
+-- MAIN KEY GUI
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "KeySystemUI"
 gui.ResetOnSpawn = false
 
--- FRAME
+-- KEY FRAME
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 320, 0, 220)
 frame.Position = UDim2.new(0.5, -160, 0.5, -110)
@@ -20,9 +22,9 @@ frame.Draggable = true
 frame.ClipsDescendants = true
 frame.AnchorPoint = Vector2.new(0.5,0.5)
 
--- TITLE
+-- KEY TITLE
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 50)
+title.Size = UDim2.new(1,0,0,50)
 title.Text = "🔐 Enter Key"
 title.TextColor3 = Color3.fromRGB(255,255,255)
 title.BackgroundTransparency = 1
@@ -31,8 +33,8 @@ title.Font = Enum.Font.GothamBold
 
 -- INPUT BOX
 local box = Instance.new("TextBox", frame)
-box.Size = UDim2.new(1, -40, 0, 50)
-box.Position = UDim2.new(0, 20, 0, 70)
+box.Size = UDim2.new(1,-40,0,50)
+box.Position = UDim2.new(0,20,0,70)
 box.PlaceholderText = "Enter your key here"
 box.Text = ""
 box.TextScaled = true
@@ -43,8 +45,8 @@ box.Font = Enum.Font.Gotham
 
 -- SUBMIT BUTTON
 local submit = Instance.new("TextButton", frame)
-submit.Size = UDim2.new(1, -40, 0, 40)
-submit.Position = UDim2.new(0, 20, 0, 130)
+submit.Size = UDim2.new(1,-40,0,40)
+submit.Position = UDim2.new(0,20,0,130)
 submit.Text = "Submit"
 submit.TextScaled = true
 submit.BackgroundColor3 = Color3.fromRGB(60,120,60)
@@ -53,87 +55,33 @@ submit.Font = Enum.Font.GothamBold
 
 -- GET LINK BUTTON
 local getLink = Instance.new("TextButton", frame)
-getLink.Size = UDim2.new(1, -40, 0, 30)
-getLink.Position = UDim2.new(0, 20, 0, 180)
+getLink.Size = UDim2.new(1,-40,0,30)
+getLink.Position = UDim2.new(0,20,0,180)
 getLink.Text = "Get Key Link"
 getLink.TextScaled = true
 getLink.BackgroundColor3 = Color3.fromRGB(60,60,120)
 getLink.TextColor3 = Color3.fromRGB(255,255,255)
 getLink.Font = Enum.Font.GothamBold
 
--- BUTTON FUNCTIONS WITH FADE ANIMATION
-submit.MouseButton1Click:Connect(function()
-    if box.Text == CORRECT_KEY then
-        UNLOCKED = true
-        print("✅ Key Accepted")
-        
-        -- Fade out Key UI
-        for i = 1, 10 do
-            frame.BackgroundTransparency = frame.BackgroundTransparency + 0.08
-            title.TextTransparency = title.TextTransparency + 0.1
-            box.TextTransparency = box.TextTransparency + 0.1
-            submit.TextTransparency = submit.TextTransparency + 0.1
-            getLink.TextTransparency = getLink.TextTransparency + 0.1
-            task.wait(0.03)
-        end
-        
-        -- Show Script Hub UI
-        gui2.Parent = player.PlayerGui
-        frame2.BackgroundTransparency = 1
-        title2.TextTransparency = 1
-        for i = 1, 10 do
-            frame2.BackgroundTransparency = frame2.BackgroundTransparency - 0.08
-            title2.TextTransparency = title2.TextTransparency - 0.1
-            task.wait(0.03)
-        end
-        
-        -- Fade in buttons
-        for _, btn in ipairs(scriptHubButtons) do
-            btn.BackgroundTransparency = 1
-            btn.TextTransparency = 1
-        end
-        for _, btn in ipairs(scriptHubButtons) do
-            for i = 1, 10 do
-                btn.BackgroundTransparency = btn.BackgroundTransparency - 0.08
-                btn.TextTransparency = btn.TextTransparency - 0.1
-                task.wait(0.03)
-            end
-        end
-        
-        gui:Destroy()
-    else
-        submit.Text = "❌ Wrong Key"
-        task.wait(1)
-        submit.Text = "Submit"
-    end
-end)
-
-getLink.MouseButton1Click:Connect(function()
-    setclipboard("https://your-link-here.com")
-    getLink.Text = "📋 Link Copied"
-    task.wait(1)
-    getLink.Text = "Get Key Link"
-end)
-
-repeat task.wait() until UNLOCKED
-
 -- =========================
--- 📦 SCRIPT HUB (AUTO BUY + CODES)
+-- SCRIPT HUB GUI
 -- =========================
-local gui2 = Instance.new("ScreenGui", player.PlayerGui)
+local gui2 = Instance.new("ScreenGui")
 gui2.Name = "ScriptHubUI"
+gui2.Parent = player.PlayerGui
 
--- MAIN FRAME
+-- MAIN HUB FRAME
 local frame2 = Instance.new("Frame", gui2)
-frame2.Size = UDim2.new(0, 360, 0, 420)
-frame2.Position = UDim2.new(0.5, -180, 0.5, -210)
+frame2.Size = UDim2.new(0,360,0,420)
+frame2.Position = UDim2.new(0.5,-180,0.5,-210)
 frame2.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame2.Active = true
 frame2.Draggable = true
 frame2.ClipsDescendants = true
 frame2.AnchorPoint = Vector2.new(0.5,0.5)
+frame2.Visible = false
 
--- TITLE
+-- HUB TITLE
 local title2 = Instance.new("TextLabel", frame2)
 title2.Size = UDim2.new(1,0,0,50)
 title2.Text = "📦 Script Hub"
@@ -142,45 +90,51 @@ title2.BackgroundTransparency = 1
 title2.TextScaled = true
 title2.Font = Enum.Font.GothamBold
 
--- CREATE BUTTON FUNCTION
-local function createButton(parent, text, positionY, color)
+-- BUTTON CREATOR
+local scriptHubButtons = {}
+local function createButton(parent,text,posY,color)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -40, 0, 40)
-    btn.Position = UDim2.new(0, 20, 0, positionY)
+    btn.Size = UDim2.new(1,-40,0,40)
+    btn.Position = UDim2.new(0,20,0,posY)
     btn.Text = text
     btn.TextScaled = true
     btn.BackgroundColor3 = color
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.GothamBold
     btn.AutoButtonColor = true
+    table.insert(scriptHubButtons,btn)
     return btn
 end
 
--- AUTO BUY TOGGLE
+-- =========================
+-- BUTTONS: Auto Buy + Codes
+-- =========================
 local autoBuy = false
 local utensilBuyAmount = 4
 local delayBetweenBuys = 0.2
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
+
 local toggleBtn = createButton(frame2,"Auto Buy: OFF",70,Color3.fromRGB(50,50,50))
 toggleBtn.MouseButton1Click:Connect(function()
     autoBuy = not autoBuy
     toggleBtn.Text = autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- REDEEM CODES
 local codesBtn = createButton(frame2,"Redeem All Codes",130,Color3.fromRGB(50,50,100))
-local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 local codes = {"RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE","NEWFRRUIT1","NEWFRRUIT2","SINP5","Christmas1","Christmas2","Christmas3","UPDATE1","UPDATE2","UPDATE3","FUSE777","BEST999","NEW666","VIP888","GROW888","REDRESS","kgfruit"}
 codesBtn.MouseButton1Click:Connect(function()
-    for _, code in ipairs(codes) do
+    for _,code in ipairs(codes) do
         pcall(function()
-            remote:FireServer("GetCode", code)
+            remote:FireServer("GetCode",code)
         end)
         task.wait(0.3)
     end
     print("✅ All codes redeemed!")
 end)
 
--- CATEGORIES
+-- =========================
+-- AUTO BUY CATEGORIES
+-- =========================
 local categories = {
     ["Utensils"] = {
         {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",1}},
@@ -196,17 +150,21 @@ local categories = {
         {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",11}},
         {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",12}},
         {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",13}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",14}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",15}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",16}},
     },
     ["Plants"] = {
-        {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",15}},
         {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",14}},
+        {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",15}},
+        {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",16}},
     }
 }
 
--- AUTO BUY LOOP
 task.spawn(function()
     while true do
         if autoBuy then
+            -- Utensils
             for _, item in pairs(categories["Utensils"]) do
                 for i = 1, utensilBuyAmount do
                     pcall(function()
@@ -215,6 +173,7 @@ task.spawn(function()
                     task.wait(0.7)
                 end
             end
+            -- Plants
             for _, plant in pairs(categories["Plants"]) do
                 pcall(function()
                     remote:FireServer(unpack(plant.args))
@@ -229,14 +188,16 @@ end)
 -- =========================
 -- ⚡ AUTO UPGRADE TAB
 -- =========================
-personalBtn = createButton(frame2,"Auto Upgrade",190,Color3.fromRGB(100,50,50))
 local upgradeFrame = Instance.new("Frame")
-upgradeFrame.Size = UDim2.new(1,0,1,0)
+upgradeFrame.Size = UDim2.new(0,360,0,420)
+upgradeFrame.Position = UDim2.new(0.5,-180,0.5,-210)
 upgradeFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+upgradeFrame.Active = true
+upgradeFrame.Draggable = true
+upgradeFrame.ClipsDescendants = true
+upgradeFrame.AnchorPoint = Vector2.new(0.5,0.5)
 upgradeFrame.Visible = false
-upgradeFrame.AnchorPoint = Vector2.new(0,0)
-upgradeFrame.Position = UDim2.new(0,0,0,0)
-upgradeFrame.Parent = frame2
+upgradeFrame.Parent = gui2
 
 local upgradeTitle = Instance.new("TextLabel", upgradeFrame)
 upgradeTitle.Size = UDim2.new(1,0,0,50)
@@ -259,19 +220,14 @@ local localPlayerId = player.UserId
 local upgradeScript1 = createButton(upgradeFrame,"Run Business Script 1",120,Color3.fromRGB(100,50,50))
 upgradeScript1.MouseButton1Click:Connect(function()
     remote:FireServer("Business","\230\148\190\231\189\174_\229\174\160\231\137\169",localPlayerId)
-    print("✅ Business Script 1 Fired for player", localPlayerId)
 end)
-
 local upgradeScript2 = createButton(upgradeFrame,"Run Business Script 2",180,Color3.fromRGB(100,50,50))
 upgradeScript2.MouseButton1Click:Connect(function()
     remote:FireServer("Business","\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154",localPlayerId)
-    print("✅ Business Script 2 Fired for player", localPlayerId)
 end)
-
 local upgradeScript3 = createButton(upgradeFrame,"Run Change Item Script",240,Color3.fromRGB(100,50,50))
 upgradeScript3.MouseButton1Click:Connect(function()
     remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",3)
-    print("✅ Change_ArrayBool_Item Script Fired")
 end)
 
 local sequenceBtn = createButton(upgradeFrame,"Run Auto Upgrade Sequence",300,Color3.fromRGB(120,50,50))
@@ -281,10 +237,33 @@ sequenceBtn.MouseButton1Click:Connect(function()
     remote:FireServer("Business","\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154",localPlayerId)
     task.wait(0.5)
     remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",3)
-    print("✅ Auto Upgrade Sequence Completed for player", localPlayerId)
 end)
 
+-- AUTO UPGRADE BUTTON
+local personalBtn = createButton(frame2,"Auto Upgrade",190,Color3.fromRGB(100,50,50))
 personalBtn.MouseButton1Click:Connect(function()
     frame2.Visible = false
     upgradeFrame.Visible = true
+end)
+
+-- =========================
+-- KEY SUBMIT FUNCTION
+-- =========================
+submit.MouseButton1Click:Connect(function()
+    if box.Text == CORRECT_KEY then
+        UNLOCKED = true
+        gui:Destroy()
+        frame2.Visible = true
+    else
+        submit.Text = "❌ Wrong Key"
+        task.wait(1)
+        submit.Text = "Submit"
+    end
+end)
+
+getLink.MouseButton1Click:Connect(function()
+    setclipboard("https://your-link-here.com")
+    getLink.Text = "📋 Link Copied"
+    task.wait(1)
+    getLink.Text = "Get Key Link"
 end)
