@@ -114,12 +114,14 @@ local utensilBuyAmount = 4
 local delayBetweenBuys = 0.2
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 
+-- Auto Buy Toggle
 local toggleBtn = createButton(frame2,"Auto Buy: OFF",70,Color3.fromRGB(50,50,50))
 toggleBtn.MouseButton1Click:Connect(function()
     autoBuy = not autoBuy
     toggleBtn.Text = autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
+-- Redeem Codes Button
 local codesBtn = createButton(frame2,"Redeem All Codes",130,Color3.fromRGB(50,50,100))
 local codes = {"RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE","NEWFRRUIT1","NEWFRRUIT2","SINP5","Christmas1","Christmas2","Christmas3","UPDATE1","UPDATE2","UPDATE3","FUSE777","BEST999","NEW666","VIP888","GROW888","REDRESS","kgfruit"}
 codesBtn.MouseButton1Click:Connect(function()
@@ -127,7 +129,7 @@ codesBtn.MouseButton1Click:Connect(function()
         pcall(function()
             remote:FireServer("GetCode",code)
         end)
-        task.wait(0.3)
+        task.wait(0.5)
     end
     print("✅ All codes redeemed!")
 end)
@@ -161,6 +163,7 @@ local categories = {
     }
 }
 
+-- AUTO BUY LOOP
 task.spawn(function()
     while true do
         if autoBuy then
@@ -186,64 +189,36 @@ task.spawn(function()
 end)
 
 -- =========================
--- ⚡ AUTO UPGRADE TAB
+-- AUTO UPGRADE TOGGLE
 -- =========================
-local upgradeFrame = Instance.new("Frame")
-upgradeFrame.Size = UDim2.new(0,360,0,420)
-upgradeFrame.Position = UDim2.new(0.5,-180,0.5,-210)
-upgradeFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-upgradeFrame.Active = true
-upgradeFrame.Draggable = true
-upgradeFrame.ClipsDescendants = true
-upgradeFrame.AnchorPoint = Vector2.new(0.5,0.5)
-upgradeFrame.Visible = false
-upgradeFrame.Parent = gui2
-
-local upgradeTitle = Instance.new("TextLabel", upgradeFrame)
-upgradeTitle.Size = UDim2.new(1,0,0,50)
-upgradeTitle.Position = UDim2.new(0,0,0,0)
-upgradeTitle.Text = "⚡ Auto Upgrade"
-upgradeTitle.TextColor3 = Color3.fromRGB(255,255,255)
-upgradeTitle.BackgroundTransparency = 1
-upgradeTitle.TextScaled = true
-upgradeTitle.Font = Enum.Font.GothamBold
-
-local backBtn = createButton(upgradeFrame,"Back",60,Color3.fromRGB(50,50,100))
-backBtn.MouseButton1Click:Connect(function()
-    upgradeFrame.Visible = false
-    frame2.Visible = true
+local autoUpgradeEnabled = false
+local upgradeToggle = createButton(frame2,"Auto Upgrade: OFF",190,Color3.fromRGB(100,50,50))
+upgradeToggle.MouseButton1Click:Connect(function()
+    autoUpgradeEnabled = not autoUpgradeEnabled
+    upgradeToggle.Text = autoUpgradeEnabled and "Auto Upgrade: ON" or "Auto Upgrade: OFF"
 end)
 
-local localPlayerId = player.UserId
+-- AUTO UPGRADE SEQUENCE
+task.spawn(function()
+    while true do
+        if autoUpgradeEnabled then
+            local localPlayerId = player.UserId
+            local sequence = {
+                {"Business","\230\148\190\231\189\174_\229\174\160\231\137\169",28}, -- your new command
+                {"Business","\230\148\190\231\189\174_\229\174\160\231\137\169",localPlayerId},
+                {"Business","\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154",localPlayerId},
+                {"Change_ArrayBool_Item","\230\137\139\231\137\140",3}
+            }
 
--- Individual Scripts
-local upgradeScript1 = createButton(upgradeFrame,"Run Business Script 1",120,Color3.fromRGB(100,50,50))
-upgradeScript1.MouseButton1Click:Connect(function()
-    remote:FireServer("Business","\230\148\190\231\189\174_\229\174\160\231\137\169",localPlayerId)
-end)
-local upgradeScript2 = createButton(upgradeFrame,"Run Business Script 2",180,Color3.fromRGB(100,50,50))
-upgradeScript2.MouseButton1Click:Connect(function()
-    remote:FireServer("Business","\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154",localPlayerId)
-end)
-local upgradeScript3 = createButton(upgradeFrame,"Run Change Item Script",240,Color3.fromRGB(100,50,50))
-upgradeScript3.MouseButton1Click:Connect(function()
-    remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",3)
-end)
-
-local sequenceBtn = createButton(upgradeFrame,"Run Auto Upgrade Sequence",300,Color3.fromRGB(120,50,50))
-sequenceBtn.MouseButton1Click:Connect(function()
-    remote:FireServer("Business","\230\148\190\231\189\174_\229\174\160\231\137\169",localPlayerId)
-    task.wait(0.5)
-    remote:FireServer("Business","\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154",localPlayerId)
-    task.wait(0.5)
-    remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",3)
-end)
-
--- AUTO UPGRADE BUTTON
-local personalBtn = createButton(frame2,"Auto Upgrade",190,Color3.fromRGB(100,50,50))
-personalBtn.MouseButton1Click:Connect(function()
-    frame2.Visible = false
-    upgradeFrame.Visible = true
+            for _, cmd in ipairs(sequence) do
+                pcall(function()
+                    remote:FireServer(unpack(cmd))
+                end)
+                task.wait(0.5)
+            end
+        end
+        task.wait(1)
+    end
 end)
 
 -- =========================
