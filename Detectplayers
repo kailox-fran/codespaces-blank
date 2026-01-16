@@ -1,42 +1,69 @@
--- LocalScript
+-- Loadstring-ready version with UI toggle
+loadstring([==[
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
-local detectionRadius = 15 -- studs, adjust as needed
+local detectionRadius = 15
 local highlightedPlayers = {}
+local detecting = false -- toggle state
 
--- Function to create a BillboardGui above a player
-local function highlightPlayer(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Check if already highlighted
-        if highlightedPlayers[player] then return end
+-- Create UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NearbyDetectorUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
 
-        local hrp = player.Character.HumanoidRootPart
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 150, 0, 50)
+ToggleButton.Position = UDim2.new(0, 20, 0, 20)
+ToggleButton.Text = "Toggle Detector: OFF"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+ToggleButton.TextColor3 = Color3.new(1,1,1)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextScaled = true
+ToggleButton.Parent = ScreenGui
 
-        local billboard = Instance.new("BillboardGui")
-        billboard.Name = "Highlight"
-        billboard.Adornee = hrp
-        billboard.Size = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 3, 0)
-        billboard.AlwaysOnTop = true
-
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Parent = billboard
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.Text = player.Name .. " (Nearby)"
-        textLabel.TextColor3 = Color3.new(1, 0, 0)
-        textLabel.TextScaled = true
-        textLabel.Font = Enum.Font.SourceSansBold
-
-        billboard.Parent = game.CoreGui -- Billboard in CoreGui for local visibility
-
-        highlightedPlayers[player] = billboard
+ToggleButton.MouseButton1Click:Connect(function()
+    detecting = not detecting
+    if detecting then
+        ToggleButton.Text = "Toggle Detector: ON"
+    else
+        ToggleButton.Text = "Toggle Detector: OFF"
+        -- Remove all highlights when turned off
+        for _, billboard in pairs(highlightedPlayers) do
+            billboard:Destroy()
+        end
+        highlightedPlayers = {}
     end
+end)
+
+-- Highlight functions
+local function highlightPlayer(player)
+    if highlightedPlayers[player] then return end
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    local hrp = player.Character.HumanoidRootPart
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "Highlight"
+    billboard.Adornee = hrp
+    billboard.Size = UDim2.new(0,100,0,50)
+    billboard.StudsOffset = Vector3.new(0,3,0)
+    billboard.AlwaysOnTop = true
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Parent = billboard
+    textLabel.Size = UDim2.new(1,0,1,0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = player.Name.." (Nearby)"
+    textLabel.TextColor3 = Color3.new(1,0,0)
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.SourceSansBold
+
+    billboard.Parent = game.CoreGui
+    highlightedPlayers[player] = billboard
 end
 
--- Function to remove highlight
 local function removeHighlight(player)
     if highlightedPlayers[player] then
         highlightedPlayers[player]:Destroy()
@@ -46,24 +73,24 @@ end
 
 -- Main loop
 RunService.RenderStepped:Connect(function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local myPos = LocalPlayer.Character.HumanoidRootPart.Position
+    if not detecting then return end
+    if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) then return end
 
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local otherPos = player.Character.HumanoidRootPart.Position
-                local distance = (myPos - otherPos).Magnitude
+    local myPos = LocalPlayer.Character.HumanoidRootPart.Position
 
-                if distance <= detectionRadius then
-                    highlightPlayer(player)
-                    -- You can add any action here for nearby players, e.g.,
-                    -- print(player.Name .. " is close! Trigger action!")
-                else
-                    removeHighlight(player)
-                end
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local otherPos = player.Character.HumanoidRootPart.Position
+            local distance = (myPos - otherPos).Magnitude
+
+            if distance <= detectionRadius then
+                highlightPlayer(player)
             else
                 removeHighlight(player)
             end
+        else
+            removeHighlight(player)
         end
     end
 end)
+]==])()
