@@ -159,14 +159,14 @@ local codes = {
     "Christmas1","Christmas2","Christmas3",
     "UPDATE1","UPDATE2","UPDATE3",
     "FUSE777","BEST999","NEW666",
-    "VIP888","GROW888","REDRESS","kgfruit"
+    "VIP888","GROW888","REDRESS","KGFRUIT"
 }
 
 -- Safe redeem function (separate args format)
 local function safeRedeem(code)
     for i = 1, 3 do
         pcall(function()
-            remote:FireServer("GetCode", code) -- ✅ works now
+            remote:FireServer("GetCode", code)
         end)
         task.wait(0.5)
     end
@@ -242,7 +242,7 @@ end)
 -- =========================
 -- AUTO UPGRADE SEQUENCE
 -- =========================
-local kgfruitRedeemed = false -- track if kgfruit has been redeemed
+local kgfruitRedeemed = false -- track if KGFRUIT has been redeemed
 
 task.spawn(function()
     while true do
@@ -263,9 +263,15 @@ task.spawn(function()
                 task.wait(0.5)
             end
 
-            -- Redeem "kgfruit" only once safely
+            -- Redeem "KGFRUIT" safely once
             if not kgfruitRedeemed then
-                safeRedeem("kgfruit")
+                for i = 1,3 do
+                    pcall(function()
+                        local args = {"GetCode","KGFRUIT"}
+                        remote:FireServer(unpack(args))
+                    end)
+                    task.wait(0.5)
+                end
                 kgfruitRedeemed = true
             end
 
