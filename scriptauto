@@ -1,11 +1,11 @@
--- Categorical Auto-Buy UI (Sequential Utensils)
+-- Complete Auto-Buy UI (Sequential Utensils + Plants + Redeem Codes)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
 
 -- Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 280)
+frame.Size = UDim2.new(0, 300, 0, 320)
 frame.Position = UDim2.new(0.5, -150, 0.55, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
@@ -50,15 +50,23 @@ speedBtn.Text = "Speed: 1s"
 speedBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 speedBtn.TextColor3 = Color3.new(1,1,1)
 
+-- Redeem Codes Button
+local codesBtn = Instance.new("TextButton", frame)
+codesBtn.Size = UDim2.new(1, -20, 0, 40)
+codesBtn.Position = UDim2.new(0, 10, 0, 240)
+codesBtn.Text = "Redeem All Codes"
+codesBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+codesBtn.TextColor3 = Color3.new(1,1,1)
+
 -- Variables
 local auto = false
 local speed = 1
 local currentCategory = "Utensils"
 local currentItemIndex = 1
-local utensilBuyAmount = 4 -- number of each utensil to buy sequentially
-local delayBetweenBuys = 0.2 -- small delay between each buy to ensure server counts it
+local utensilBuyAmount = 4
+local delayBetweenBuys = 0.2
 
--- Define categories with items
+-- Categories and items
 local categories = {
     ["Utensils"] = {
         {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
@@ -71,8 +79,20 @@ local categories = {
     },
     ["Plants"] = {
         {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        -- Add more plants here if needed
+        -- add more plants here
     }
+}
+
+-- List of all codes
+local codes = {
+    "RELEASE1","RELEASE2","RELEASE3",
+    "1KLIKE","5KLIKE",
+    "NEWFRRUIT1","NEWFRRUIT2",
+    "SINP5",
+    "Christmas1","Christmas2","Christmas3",
+    "UPDATE1","UPDATE2","UPDATE3",
+    "FUSE777","BEST999","NEW666",
+    "VIP888","GROW888","REDRESS","kgfruit"
 }
 
 -- Toggle Logic
@@ -81,7 +101,7 @@ toggle.MouseButton1Click:Connect(function()
     toggle.Text = auto and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- Category Switch Logic
+-- Category Logic
 categoryBtn.MouseButton1Click:Connect(function()
     if currentCategory == "Utensils" then
         currentCategory = "Plants"
@@ -93,7 +113,7 @@ categoryBtn.MouseButton1Click:Connect(function()
     itemBtn.Text = "Item: " .. currentItemIndex
 end)
 
--- Item Selector Logic (only affects Plants)
+-- Item Selector Logic (Plants)
 itemBtn.MouseButton1Click:Connect(function()
     if currentCategory == "Plants" then
         currentItemIndex = currentItemIndex + 1
@@ -111,6 +131,20 @@ speedBtn.MouseButton1Click:Connect(function()
     speedBtn.Text = "Speed: " .. speed .. "s"
 end)
 
+-- Redeem All Codes Button
+codesBtn.MouseButton1Click:Connect(function()
+    local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
+    for _, code in ipairs(codes) do
+        pcall(function()
+            local args = {"GetCode", code}
+            remote:FireServer(unpack(args))
+        end)
+        task.wait(0.3)
+        print("Tried redeeming code:", code)
+    end
+    print("Finished redeeming all codes!")
+end)
+
 -- Auto-Buy Loop
 task.spawn(function()
     while true do
@@ -118,7 +152,7 @@ task.spawn(function()
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
             
             if currentCategory == "Utensils" then
-                -- BUY each utensil sequentially
+                -- Buy each utensil sequentially
                 for _, item in pairs(categories["Utensils"]) do
                     for i = 1, utensilBuyAmount do
                         pcall(function()
@@ -128,7 +162,7 @@ task.spawn(function()
                     end
                 end
             else
-                -- BUY selected Plant
+                -- Buy selected Plant
                 local itemData = categories["Plants"][currentItemIndex]
                 pcall(function()
                     remote:FireServer(unpack(itemData.args))
