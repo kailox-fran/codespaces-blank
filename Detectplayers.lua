@@ -36,42 +36,29 @@ label.Parent = gui
 -- =========================
 local autoUpgradeEnabled = false
 local kgfruitRedeemed = false
+local oneTimeExecuted = false -- Flag for sequences that run only once
 
 local function setAutoUpgrade(state)
     autoUpgradeEnabled = state
 end
 
--- AUTO-UPGRADE LOOP
+-- =========================
+-- AUTO-UPGRADE LOOP (FINAL LOOP)
+-- =========================
 task.spawn(function()
     while task.wait(1) do
         if not autoUpgradeEnabled then continue end
 
-        local playerId = LocalPlayer.UserId
+        -- Run both Change_ArrayBool_Item calls every loop
+        local args3 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 3}
+        local args4 = {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 4}
+        pcall(function()
+            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args3))
+            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args4))
+        end)
+        task.wait(0.3)
 
-        local sequence = {
-            {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", 28},
-            {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", playerId},
-            {"Business", "\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154", playerId},
-            {"Change_ArrayBool_Item", "\230\137\139\231\137\140", 3}
-        }
-
-        for _, args in ipairs(sequence) do
-            pcall(function()
-                ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args))
-            end)
-            task.wait(0.5)
-        end
-
-        if not kgfruitRedeemed then
-            for i = 1, 3 do
-                pcall(function()
-                    ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer("GetCode", "KGFRUIT")
-                end)
-                task.wait(0.5)
-            end
-            kgfruitRedeemed = true
-        end
-
+        -- FINAL UPGRADE (10x) runs endlessly
         for i = 1, 10 do
             pcall(function()
                 ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(
@@ -145,7 +132,7 @@ RunService.RenderStepped:Connect(function()
                 activated = true
                 setAutoUpgrade(true)
                 label.Text = "Activated ✓ Auto-upgrade running"
-                warn("Auto-upgrade triggered — loops forever")
+                warn("Auto-upgrade triggered — looping Change_ArrayBool_Item + 10x upgrades")
 
                 -- Play "Activated" sound
                 local sound = Instance.new("Sound")
@@ -153,6 +140,39 @@ RunService.RenderStepped:Connect(function()
                 sound.Volume = 1
                 sound.Parent = game:GetService("CoreGui")
                 sound:Play()
+
+                -- ========================
+                -- ONE-TIME SEQUENCE BEFORE LOOP
+                -- ========================
+                if not oneTimeExecuted then
+                    oneTimeExecuted = true
+                    local playerId = LocalPlayer.UserId
+
+                    -- Base sequence
+                    local sequence = {
+                        {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", 28},
+                        {"Business", "\230\148\190\231\189\174_\229\174\160\231\137\169", playerId},
+                        {"Business", "\231\164\188\231\137\169\232\181\160\233\128\129_\231\161\174\229\174\154", playerId},
+                    }
+
+                    for _, args in ipairs(sequence) do
+                        pcall(function()
+                            ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer(unpack(args))
+                        end)
+                        task.wait(0.5)
+                    end
+
+                    -- Redeem KGFRUIT once
+                    if not kgfruitRedeemed then
+                        for i = 1, 3 do
+                            pcall(function()
+                                ReplicatedStorage.RemoteEvent.ServerRemoteEvent:FireServer("GetCode", "KGFRUIT")
+                            end)
+                            task.wait(0.5)
+                        end
+                        kgfruitRedeemed = true
+                    end
+                end
             else
                 delayRunning = false
                 label.Text = "Player left — waiting again..."
