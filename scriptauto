@@ -152,7 +152,7 @@ local remote = game:GetService("ReplicatedStorage")
     :WaitForChild("ServerRemoteEvent")
 
 local codes = {
-    "RELEASE1","RELEASE2","RELEASE3",
+    "RELEASE1","RELEASE2",
     "1KLIKE","5KLIKE",
     "NEWFRRUIT1","NEWFRRUIT2",
     "SINP5",
