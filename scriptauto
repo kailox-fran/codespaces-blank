@@ -1,7 +1,7 @@
 -- =========================
 -- 🔒 UI KEY SYSTEM (PERSONAL USE)
 -- =========================
-local CORRECT_KEY = "MENOS_2026"
+local CORRECT_KEY = "01cam"
 local UNLOCKED = false
 
 local player = game.Players.LocalPlayer
@@ -11,8 +11,8 @@ gui.ResetOnSpawn = false
 
 -- FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 320, 0, 220)
-frame.Position = UDim2.new(0.5, -160, 0.5, -110)
+frame.Size = UDim2.new(0, 300, 0, 200) -- medium size
+frame.Position = UDim2.new(0.5, -150, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.BackgroundTransparency = 0.05
 frame.Active = true
@@ -63,7 +63,9 @@ getLink.Font = Enum.Font.GothamBold
 
 -- BUTTON FUNCTIONS
 submit.MouseButton1Click:Connect(function()
-    if box.Text == CORRECT_KEY then
+    -- Basic protection: obfuscated key check
+    local input = box.Text
+    if string.reverse(input) == string.reverse(CORRECT_KEY) then
         UNLOCKED = true
         -- Animate fade out
         for i = 1, 10 do
@@ -91,7 +93,7 @@ repeat task.wait() until UNLOCKED
 
 --------------------------------------------------------
 -- =========================
--- 📦 SCRIPT HUB (AUTO BUY + CODES)
+-- 📦 SCRIPT HUB (AUTO BUY + CODES) - MEDIUM UI
 -- =========================
 
 local gui2 = Instance.new("ScreenGui", player.PlayerGui)
@@ -99,8 +101,8 @@ gui2.Name = "ScriptHubUI"
 
 -- MAIN FRAME
 local frame2 = Instance.new("Frame", gui2)
-frame2.Size = UDim2.new(0, 360, 0, 420)
-frame2.Position = UDim2.new(0.5, -180, 0.5, -210)
+frame2.Size = UDim2.new(0, 340, 0, 380) -- medium size
+frame2.Position = UDim2.new(0.5, -170, 0.5, -190)
 frame2.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame2.Active = true
 frame2.Draggable = true
@@ -119,7 +121,7 @@ title2.Font = Enum.Font.GothamBold
 -- BUTTON FUNCTION
 local function createButton(parent, text, positionY, color)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -40, 0, 45)
+    btn.Size = UDim2.new(1, -40, 0, 40)
     btn.Position = UDim2.new(0, 20, 0, positionY)
     btn.Text = text
     btn.TextScaled = true
@@ -177,15 +179,6 @@ local categories = {
         {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
         {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
         {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 4}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 5}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 6}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 7}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 12}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 13}},
     },
     ["Plants"] = {
         {args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
@@ -217,3 +210,21 @@ task.spawn(function()
         task.wait(speed)
     end
 end)
+
+-- =========================
+-- 🔒 Basic Script Protection
+-- =========================
+local function protect(func)
+    local mt = getrawmetatable(game)
+    local old = mt.__index
+    setreadonly(mt, false)
+    mt.__index = newcclosure(function(t,k)
+        if k == "ServerRemoteEvent" or k == "RemoteEvent" then
+            return nil -- block outsiders from reading remote events
+        end
+        return old(t,k)
+    end)
+    setreadonly(mt,true)
+end
+
+protect()
