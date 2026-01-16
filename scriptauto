@@ -5,13 +5,15 @@ local CORRECT_KEY = "01cam"
 local UNLOCKED = false
 
 local player = game.Players.LocalPlayer
+
+-- KEY UI
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "KeySystemUI"
 gui.ResetOnSpawn = false
 
 -- FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 200) -- medium size
+frame.Size = UDim2.new(0, 300, 0, 200)
 frame.Position = UDim2.new(0.5, -150, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.BackgroundTransparency = 0.05
@@ -22,7 +24,7 @@ frame.AnchorPoint = Vector2.new(0.5,0.5)
 
 -- TITLE
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 50)
+title.Size = UDim2.new(1,0,0,50)
 title.Text = "🔐 Enter Key"
 title.TextColor3 = Color3.fromRGB(255,255,255)
 title.BackgroundTransparency = 1
@@ -31,8 +33,8 @@ title.Font = Enum.Font.GothamBold
 
 -- INPUT BOX
 local box = Instance.new("TextBox", frame)
-box.Size = UDim2.new(1, -40, 0, 50)
-box.Position = UDim2.new(0, 20, 0, 70)
+box.Size = UDim2.new(1,-40,0,50)
+box.Position = UDim2.new(0,20,0,70)
 box.PlaceholderText = "Enter your key here"
 box.Text = ""
 box.TextScaled = true
@@ -43,8 +45,8 @@ box.Font = Enum.Font.Gotham
 
 -- SUBMIT BUTTON
 local submit = Instance.new("TextButton", frame)
-submit.Size = UDim2.new(1, -40, 0, 40)
-submit.Position = UDim2.new(0, 20, 0, 130)
+submit.Size = UDim2.new(1,-40,0,40)
+submit.Position = UDim2.new(0,20,0,130)
 submit.Text = "Submit"
 submit.TextScaled = true
 submit.BackgroundColor3 = Color3.fromRGB(60,120,60)
@@ -53,63 +55,29 @@ submit.Font = Enum.Font.GothamBold
 
 -- GET LINK BUTTON
 local getLink = Instance.new("TextButton", frame)
-getLink.Size = UDim2.new(1, -40, 0, 30)
-getLink.Position = UDim2.new(0, 20, 0, 180)
+getLink.Size = UDim2.new(1,-40,0,30)
+getLink.Position = UDim2.new(0,20,0,180)
 getLink.Text = "Get Key Link"
 getLink.TextScaled = true
 getLink.BackgroundColor3 = Color3.fromRGB(60,60,120)
 getLink.TextColor3 = Color3.fromRGB(255,255,255)
 getLink.Font = Enum.Font.GothamBold
 
--- BUTTON FUNCTIONS
-submit.MouseButton1Click:Connect(function()
-    -- Basic protection: obfuscated key check
-    local input = box.Text
-    if string.reverse(input) == string.reverse(CORRECT_KEY) then
-        UNLOCKED = true
-        -- Animate fade out
-        for i = 1, 10 do
-            frame.BackgroundTransparency = frame.BackgroundTransparency + 0.08
-            task.wait(0.03)
-        end
-        gui:Destroy()
-        print("✅ Key Accepted")
-    else
-        submit.Text = "❌ Wrong Key"
-        task.wait(1)
-        submit.Text = "Submit"
-    end
-end)
-
-getLink.MouseButton1Click:Connect(function()
-    setclipboard("https://your-link-here.com")
-    getLink.Text = "📋 Link Copied"
-    task.wait(1)
-    getLink.Text = "Get Key Link"
-end)
-
--- BLOCK SCRIPT UNTIL UNLOCKED
-repeat task.wait() until UNLOCKED
-
---------------------------------------------------------
 -- =========================
--- 📦 SCRIPT HUB (AUTO BUY + CODES) - MEDIUM UI
+-- SCRIPT HUB UI
 -- =========================
-
-local gui2 = Instance.new("ScreenGui", player.PlayerGui)
+local gui2 = Instance.new("ScreenGui")
 gui2.Name = "ScriptHubUI"
 
--- MAIN FRAME
 local frame2 = Instance.new("Frame", gui2)
-frame2.Size = UDim2.new(0, 340, 0, 380) -- medium size
-frame2.Position = UDim2.new(0.5, -170, 0.5, -190)
+frame2.Size = UDim2.new(0,340,0,380)
+frame2.Position = UDim2.new(0.5,-170,0.5,-190)
 frame2.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame2.Active = true
 frame2.Draggable = true
 frame2.ClipsDescendants = true
 frame2.AnchorPoint = Vector2.new(0.5,0.5)
 
--- TITLE
 local title2 = Instance.new("TextLabel", frame2)
 title2.Size = UDim2.new(1,0,0,50)
 title2.Text = "📦 Script Hub"
@@ -118,51 +86,69 @@ title2.BackgroundTransparency = 1
 title2.TextScaled = true
 title2.Font = Enum.Font.GothamBold
 
--- BUTTON FUNCTION
-local function createButton(parent, text, positionY, color)
+-- BUTTON CREATION FUNCTION
+local function createButton(parent,text,positionY,color)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -40, 0, 40)
-    btn.Position = UDim2.new(0, 20, 0, positionY)
+    btn.Size = UDim2.new(1,-40,0,40)
+    btn.Position = UDim2.new(0,20,0,positionY)
     btn.Text = text
     btn.TextScaled = true
     btn.BackgroundColor3 = color
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.GothamBold
     btn.AutoButtonColor = true
+
+    -- Initially hidden for fade-in animation
+    btn.BackgroundTransparency = 1
+    btn.TextTransparency = 1
+
     return btn
 end
 
--- AUTO BUY TOGGLE
+-- AUTO BUY VARIABLES
 local autoBuy = false
 local speed = 1
 local utensilBuyAmount = 4
 local delayBetweenBuys = 0.2
 
+-- CREATE BUTTONS
 local toggleBtn = createButton(frame2,"Auto Buy: OFF",70,Color3.fromRGB(50,50,50))
+local codesBtn = createButton(frame2,"Redeem All Codes",130,Color3.fromRGB(50,50,100))
+
+local scriptHubButtons = {toggleBtn, codesBtn}
+
+-- FADE IN BUTTONS ONE BY ONE
+local function fadeInButtons()
+    for _, btn in ipairs(scriptHubButtons) do
+        for i = 1, 10 do
+            btn.BackgroundTransparency = btn.BackgroundTransparency - 0.08
+            btn.TextTransparency = btn.TextTransparency - 0.1
+            task.wait(0.03)
+        end
+    end
+end
+
+-- AUTO BUY TOGGLE FUNCTION
 toggleBtn.MouseButton1Click:Connect(function()
     autoBuy = not autoBuy
     toggleBtn.Text = autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- REDEEM CODES BUTTON
-local codesBtn = createButton(frame2,"Redeem All Codes",130,Color3.fromRGB(50,50,100))
-
-local remote = game:GetService("ReplicatedStorage")
-    :WaitForChild("RemoteEvent")
-    :WaitForChild("ServerRemoteEvent")
-
-local codes = {
-    "RELEASE1","RELEASE2","RELEASE3",
-    "1KLIKE","5KLIKE",
-    "NEWFRRUIT1","NEWFRRUIT2",
-    "SINP5",
-    "Christmas1","Christmas2","Christmas3",
-    "UPDATE1","UPDATE2","UPDATE3",
-    "FUSE777","BEST999","NEW666",
-    "VIP888","GROW888","REDRESS","kgfruit"
-}
-
+-- REDEEM CODES FUNCTION
 codesBtn.MouseButton1Click:Connect(function()
+    local remote = game:GetService("ReplicatedStorage")
+        :WaitForChild("RemoteEvent")
+        :WaitForChild("ServerRemoteEvent")
+    local codes = {
+        "RELEASE1","RELEASE2","RELEASE3",
+        "1KLIKE","5KLIKE",
+        "NEWFRRUIT1","NEWFRRUIT2",
+        "SINP5",
+        "Christmas1","Christmas2","Christmas3",
+        "UPDATE1","UPDATE2","UPDATE3",
+        "FUSE777","BEST999","NEW666",
+        "VIP888","GROW888","REDRESS","kgfruit"
+    }
     for _, code in ipairs(codes) do
         pcall(function()
             remote:FireServer("GetCode", code)
@@ -175,19 +161,31 @@ end)
 -- CATEGORIES
 local categories = {
     ["Utensils"] = {
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
-        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 4}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",1}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",2}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",3}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",4}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",5}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",6}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",7}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",8}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",9}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",10}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",11}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",12}},
+        {args={"Buy_ArrayBool_Item","\233\129\147\229\133\183",13}},
     },
     ["Plants"] = {
-        {args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        {args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 14}},
+        {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",15}},
+        {args={"Buy_ArrayBool_Item","\231\167\141\229\173\144",14}},
     }
 }
 
 -- AUTO BUY LOOP
 task.spawn(function()
+    local remote = game:GetService("ReplicatedStorage")
+        :WaitForChild("RemoteEvent")
+        :WaitForChild("ServerRemoteEvent")
     while true do
         if autoBuy then
             -- Utensils
@@ -212,19 +210,66 @@ task.spawn(function()
 end)
 
 -- =========================
+-- KEY SUBMISSION & TRANSITION
+-- =========================
+submit.MouseButton1Click:Connect(function()
+    local input = box.Text
+    if string.reverse(input) == string.reverse(CORRECT_KEY) then
+        UNLOCKED = true
+        print("✅ Key Accepted")
+
+        -- Fade out Key UI
+        for i = 1, 10 do
+            frame.BackgroundTransparency = frame.BackgroundTransparency + 0.08
+            title.TextTransparency = title.TextTransparency + 0.1
+            box.TextTransparency = box.TextTransparency + 0.1
+            submit.TextTransparency = submit.TextTransparency + 0.1
+            getLink.TextTransparency = getLink.TextTransparency + 0.1
+            task.wait(0.03)
+        end
+
+        -- Show Script Hub UI with fade-in
+        gui2.Parent = player.PlayerGui
+        frame2.BackgroundTransparency = 1
+        title2.TextTransparency = 1
+        for i = 1, 10 do
+            frame2.BackgroundTransparency = frame2.BackgroundTransparency - 0.08
+            title2.TextTransparency = title2.TextTransparency - 0.1
+            task.wait(0.03)
+        end
+
+        -- Fade in buttons one by one
+        fadeInButtons()
+
+        -- Remove Key UI
+        gui:Destroy()
+    else
+        submit.Text = "❌ Wrong Key"
+        task.wait(1)
+        submit.Text = "Submit"
+    end
+end)
+
+getLink.MouseButton1Click:Connect(function()
+    setclipboard("https://your-link-here.com")
+    getLink.Text = "📋 Link Copied"
+    task.wait(1)
+    getLink.Text = "Get Key Link"
+end)
+
+-- =========================
 -- 🔒 Basic Script Protection
 -- =========================
-local function protect(func)
+local function protect()
     local mt = getrawmetatable(game)
     local old = mt.__index
-    setreadonly(mt, false)
+    setreadonly(mt,false)
     mt.__index = newcclosure(function(t,k)
         if k == "ServerRemoteEvent" or k == "RemoteEvent" then
-            return nil -- block outsiders from reading remote events
+            return nil
         end
         return old(t,k)
     end)
     setreadonly(mt,true)
 end
-
 protect()
