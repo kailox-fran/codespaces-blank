@@ -1,3 +1,6 @@
+-- AutoServerHop.lua
+-- Fully self-contained Server Hopper
+
 -- Services
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
@@ -5,53 +8,15 @@ local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local PlaceId = game.PlaceId
-local JobIdBlacklist = {}
-local autoHop = false
 local currentServerId = game.JobId
-
--- ===== Functions =====
-local function getServers(cursor)
-    local url = "https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-    if cursor then url = url.."&cursor="..cursor end
-
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-
-    if success then
-        return HttpService:JSONDecode(response)
-    else
-        warn("Failed to fetch servers")
-        return nil
-    end
-end
-
-local function serverHop()
-    if not autoHop then return end
-
-    local data = getServers()
-    if not data then return end
-
-    for _, server in pairs(data.data) do
-        if server.playing < server.maxPlayers and not JobIdBlacklist[server.id] then
-            JobIdBlacklist[server.id] = true
-            StatusLabel.Text = "Teleporting to server..."
-            StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-            TeleportService:TeleportToPlaceInstance(PlaceId, server.id, player)
-            return
-        end
-    end
-
-    StatusLabel.Text = "No server found, try again manually"
-    StatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-end
+local autoHop = false
+local JobIdBlacklist = {} -- Avoid revisiting servers
 
 -- ===== UI Setup =====
 local gui = Instance.new("ScreenGui")
 gui.Name = "ServerHopUI"
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Draggable Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 240, 0, 160)
 frame.Position = UDim2.new(0.5, -120, 0.7, 0)
@@ -61,7 +26,6 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
--- UI Corner for rounding
 local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 10)
 uiCorner.Parent = frame
@@ -74,7 +38,6 @@ toggleButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
 toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
 toggleButton.Text = "Auto Hop: OFF"
 toggleButton.Parent = frame
-
 local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = toggleButton
@@ -87,7 +50,6 @@ rejoinButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
 rejoinButton.TextColor3 = Color3.fromRGB(255,255,255)
 rejoinButton.Text = "Rejoin Current Server"
 rejoinButton.Parent = frame
-
 local rejoinCorner = Instance.new("UICorner")
 rejoinCorner.CornerRadius = UDim.new(0, 8)
 rejoinCorner.Parent = rejoinButton
@@ -102,28 +64,63 @@ StatusLabel.Text = "Status: Idle"
 StatusLabel.TextScaled = true
 StatusLabel.Parent = frame
 
+-- ===== Server Hop Functions =====
+local function getServers()
+    local servers = {}
+    local success, response = pcall(function()
+        return HttpService:GetAsync("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+    end)
+    if success then
+        local data = HttpService:JSONDecode(response)
+        if data and data.data then
+            for _, server in pairs(data.data) do
+                if server.playing < server.maxPlayers and server.id ~= currentServerId and not table.find(JobIdBlacklist, server.id) then
+                    table.insert(servers, server.id)
+                end
+            end
+        end
+    else
+        warn("Failed to fetch servers")
+    end
+    return servers
+end
+
+local function hopServer()
+    StatusLabel.Text = "Finding a new server..."
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+
+    local servers = getServers()
+    if #servers == 0 then
+        StatusLabel.Text = "No available servers!"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        return
+    end
+
+    local nextServer = servers[math.random(1, #servers)]
+    table.insert(JobIdBlacklist, currentServerId)
+    StatusLabel.Text = "Teleporting to server..."
+    StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+
+    TeleportService:TeleportToPlaceInstance(PlaceId, nextServer, player)
+end
+
 -- ===== Button Logic =====
-toggleButton.MouseEnter:Connect(function()
-    toggleButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
-end)
-toggleButton.MouseLeave:Connect(function()
-    toggleButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
-end)
-
-rejoinButton.MouseEnter:Connect(function()
-    rejoinButton.BackgroundColor3 = Color3.fromRGB(80,80,80)
-end)
-rejoinButton.MouseLeave:Connect(function()
-    rejoinButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
-end)
-
 toggleButton.MouseButton1Click:Connect(function()
     autoHop = not autoHop
     if autoHop then
         toggleButton.Text = "Auto Hop: ON"
         StatusLabel.Text = "Status: Running..."
-        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        serverHop()
+        StatusLabel.TextColor3 = Color3.fromRGB(0,255,0)
+        spawn(function()
+            while autoHop do
+                hopServer()
+                local timer = 0
+                while timer < 60 and autoHop do
+                    wait(1)
+                    timer = timer + 1
+                end
+            end
+        end)
     else
         toggleButton.Text = "Auto Hop: OFF"
         StatusLabel.Text = "Status: Idle"
@@ -133,6 +130,6 @@ end)
 
 rejoinButton.MouseButton1Click:Connect(function()
     StatusLabel.Text = "Rejoining current server..."
-    StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    StatusLabel.TextColor3 = Color3.fromRGB(0,255,0)
     TeleportService:TeleportToPlaceInstance(PlaceId, currentServerId, player)
 end)
