@@ -1,13 +1,84 @@
 -- =========================
--- 🔹 Script Hub (Auto-Buy Utensils & Plants)
+-- 🔒 UI KEY SYSTEM (PERSONAL USE)
 -- =========================
+
+local CORRECT_KEY = "MENOS_2026"  -- Change this to your own key
+local UNLOCKED = false
+
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "KeySystemUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "🔐 Enter Key"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.TextScaled = true
+
+local box = Instance.new("TextBox", frame)
+box.Size = UDim2.new(1, -20, 0, 40)
+box.Position = UDim2.new(0, 10, 0, 60)
+box.PlaceholderText = "Enter your key here"
+box.Text = ""
+box.TextScaled = true
+box.BackgroundColor3 = Color3.fromRGB(40,40,40)
+box.TextColor3 = Color3.new(1,1,1)
+
+local submit = Instance.new("TextButton", frame)
+submit.Size = UDim2.new(1, -20, 0, 40)
+submit.Position = UDim2.new(0, 10, 0, 110)
+submit.Text = "Submit"
+submit.TextScaled = true
+submit.BackgroundColor3 = Color3.fromRGB(60,120,60)
+submit.TextColor3 = Color3.new(1,1,1)
+
+local getLink = Instance.new("TextButton", frame)
+getLink.Size = UDim2.new(1, -20, 0, 30)
+getLink.Position = UDim2.new(0, 10, 0, 160)
+getLink.Text = "Get Key Link"
+getLink.TextScaled = true
+getLink.BackgroundColor3 = Color3.fromRGB(60,60,120)
+getLink.TextColor3 = Color3.new(1,1,1)
+
+submit.MouseButton1Click:Connect(function()
+    if box.Text == CORRECT_KEY then
+        UNLOCKED = true
+        gui:Destroy()
+        print("✅ Key Accepted")
+    else
+        submit.Text = "❌ Wrong Key"
+        task.wait(1)
+        submit.Text = "Submit"
+    end
+end)
+
+getLink.MouseButton1Click:Connect(function()
+    setclipboard("https://your-link-here.com")
+    getLink.Text = "📋 Link Copied"
+    task.wait(1)
+    getLink.Text = "Get Key Link"
+end)
+
+repeat task.wait() until UNLOCKED
+
+
+-- =========================
+-- 📦 SCRIPT HUB (AUTO BUY)
+-- =========================
+
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "ScriptHubUI"
 
--- =========================
--- UI FRAME
--- =========================
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 320, 0, 360)
 frame.Position = UDim2.new(0.5, -160, 0.5, -180)
@@ -22,61 +93,37 @@ title.TextColor3 = Color3.fromRGB(1,1,1)
 title.BackgroundTransparency = 1
 title.TextScaled = true
 
--- =========================
--- VARIABLES
--- =========================
 local autoBuy = false
 local speed = 1
 local utensilBuyAmount = 4
-local delayBetweenBuys = 0.2 -- for Plants
+local delayBetweenBuys = 0.2
 
--- Remote shortcut
-local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
+local remote = game:GetService("ReplicatedStorage")
+    :WaitForChild("RemoteEvent")
+    :WaitForChild("ServerRemoteEvent")
 
--- =========================
--- CATEGORIES & ITEMS
--- =========================
 local categories = {
     ["Utensils"] = {
-        {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
-        {name="Item 2", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
-        {name="Item 3", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
-        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 4}},
-        {name="Item 5", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 5}},
-        {name="Item 6", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 6}},
-        {name="Item 7", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 7}},
-        {name="Item 8", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
-        {name="Item 9", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
-        {name="Item 10", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
-        {name="Item 11", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
-        {name="Item 12", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 12}},
-        {name="Item 13", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 13}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 4}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 5}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 6}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 7}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 12}},
+        {args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 13}},
     },
     ["Plants"] = {
-        {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        {name="Plant 2", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 14}},
-        -- add more plants here as needed
+        {args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
+        {args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 14}},
     }
 }
 
--- =========================
--- CODES
--- =========================
-local codes = {
-    "RELEASE1","RELEASE2","RELEASE3",
-    "1KLIKE","5KLIKE",
-    "NEWFRRUIT1","NEWFRRUIT2",
-    "SINP5",
-    "Christmas1","Christmas2","Christmas3",
-    "UPDATE1","UPDATE2","UPDATE3",
-    "FUSE777","BEST999","NEW666",
-    "VIP888","GROW888","REDRESS","kgfruit"
-}
-
--- =========================
--- BUTTONS
--- =========================
--- Auto Buy Toggle
 local toggleBtn = Instance.new("TextButton", frame)
 toggleBtn.Size = UDim2.new(1, -20, 0, 40)
 toggleBtn.Position = UDim2.new(0, 10, 0, 50)
@@ -89,55 +136,18 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- Speed Button
-local speedBtn = Instance.new("TextButton", frame)
-speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 100)
-speedBtn.Text = "Speed: 1s"
-speedBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-speedBtn.TextColor3 = Color3.fromRGB(1,1,1)
-
-speedBtn.MouseButton1Click:Connect(function()
-    speed = speed + 1
-    if speed > 3 then speed = 1 end
-    speedBtn.Text = "Speed: "..speed.."s"
-end)
-
--- Redeem All Codes Button
-local codesBtn = Instance.new("TextButton", frame)
-codesBtn.Size = UDim2.new(1, -20, 0, 40)
-codesBtn.Position = UDim2.new(0, 10, 0, 150)
-codesBtn.Text = "Redeem All Codes"
-codesBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-codesBtn.TextColor3 = Color3.fromRGB(1,1,1)
-
-codesBtn.MouseButton1Click:Connect(function()
-    for _, code in ipairs(codes) do
-        pcall(function()
-            remote:FireServer({"GetCode", code})
-        end)
-        task.wait(0.3)
-    end
-    print("Finished redeeming all codes!")
-end)
-
--- =========================
--- AUTO BUY LOOP
--- =========================
 task.spawn(function()
     while true do
         if autoBuy then
-            -- Buy all utensils with 0.7s delay
             for _, item in pairs(categories["Utensils"]) do
                 for i = 1, utensilBuyAmount do
                     pcall(function()
                         remote:FireServer(unpack(item.args))
                     end)
-                    task.wait(0.7) -- updated relay for utensils
+                    task.wait(0.7)
                 end
             end
 
-            -- Buy all plants with original delay (0.2s)
             for _, plant in pairs(categories["Plants"]) do
                 pcall(function()
                     remote:FireServer(unpack(plant.args))
