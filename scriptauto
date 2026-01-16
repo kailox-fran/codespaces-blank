@@ -1,5 +1,5 @@
 -- =========================
--- 🔹 Script Hub (Expandable)
+-- 🔹 Script Hub (Auto-Buy Utensils & Plants)
 -- =========================
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
@@ -27,10 +27,8 @@ title.TextScaled = true
 -- =========================
 local autoBuy = false
 local speed = 1
-local currentCategory = "Utensils"
-local currentItemIndex = 1
 local utensilBuyAmount = 4
-local delayBetweenBuys = 0.2
+local delayBetweenBuys = 0.2 -- for Plants
 
 -- Remote shortcut
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
@@ -56,7 +54,8 @@ local categories = {
     },
     ["Plants"] = {
         {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        -- add more plants here
+        {name="Plant 2", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 14}},
+        -- add more plants here as needed
     }
 }
 
@@ -90,46 +89,10 @@ toggleBtn.MouseButton1Click:Connect(function()
     toggleBtn.Text = autoBuy and "Auto Buy: ON" or "Auto Buy: OFF"
 end)
 
--- Category Selector
-local categoryBtn = Instance.new("TextButton", frame)
-categoryBtn.Size = UDim2.new(1, -20, 0, 40)
-categoryBtn.Position = UDim2.new(0, 10, 0, 100)
-categoryBtn.Text = "Category: Utensils"
-categoryBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-categoryBtn.TextColor3 = Color3.fromRGB(1,1,1)
-
-categoryBtn.MouseButton1Click:Connect(function()
-    if currentCategory == "Utensils" then
-        currentCategory = "Plants"
-    else
-        currentCategory = "Utensils"
-    end
-    currentItemIndex = 1
-    categoryBtn.Text = "Category: "..currentCategory
-end)
-
--- Plant Selector
-local itemBtn = Instance.new("TextButton", frame)
-itemBtn.Size = UDim2.new(1, -20, 0, 40)
-itemBtn.Position = UDim2.new(0, 10, 0, 150)
-itemBtn.Text = "Item: 1"
-itemBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-itemBtn.TextColor3 = Color3.fromRGB(1,1,1)
-
-itemBtn.MouseButton1Click:Connect(function()
-    if currentCategory == "Plants" then
-        currentItemIndex = currentItemIndex + 1
-        if currentItemIndex > #categories["Plants"] then
-            currentItemIndex = 1
-        end
-        itemBtn.Text = "Item: "..currentItemIndex
-    end
-end)
-
 -- Speed Button
 local speedBtn = Instance.new("TextButton", frame)
 speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 200)
+speedBtn.Position = UDim2.new(0, 10, 0, 100)
 speedBtn.Text = "Speed: 1s"
 speedBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 speedBtn.TextColor3 = Color3.fromRGB(1,1,1)
@@ -143,7 +106,7 @@ end)
 -- Redeem All Codes Button
 local codesBtn = Instance.new("TextButton", frame)
 codesBtn.Size = UDim2.new(1, -20, 0, 40)
-codesBtn.Position = UDim2.new(0, 10, 0, 250)
+codesBtn.Position = UDim2.new(0, 10, 0, 150)
 codesBtn.Text = "Redeem All Codes"
 codesBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 codesBtn.TextColor3 = Color3.fromRGB(1,1,1)
@@ -164,20 +127,22 @@ end)
 task.spawn(function()
     while true do
         if autoBuy then
-            if currentCategory == "Utensils" then
-                for _, item in pairs(categories["Utensils"]) do
-                    for i = 1, utensilBuyAmount do
-                        pcall(function()
-                            remote:FireServer(unpack(item.args))
-                        end)
-                        task.wait(delayBetweenBuys)
-                    end
+            -- Buy all utensils with 0.7s delay
+            for _, item in pairs(categories["Utensils"]) do
+                for i = 1, utensilBuyAmount do
+                    pcall(function()
+                        remote:FireServer(unpack(item.args))
+                    end)
+                    task.wait(0.7) -- updated relay for utensils
                 end
-            else
-                local plantData = categories["Plants"][currentItemIndex]
+            end
+
+            -- Buy all plants with original delay (0.2s)
+            for _, plant in pairs(categories["Plants"]) do
                 pcall(function()
-                    remote:FireServer(unpack(plantData.args))
+                    remote:FireServer(unpack(plant.args))
                 end)
+                task.wait(delayBetweenBuys)
             end
         end
         task.wait(speed)
