@@ -1,12 +1,12 @@
--- Complete Auto-Buy UI (Sequential Utensils + Plants + Redeem Codes)
+-- Complete Auto-Buy UI (Sequential Utensils + Plants + Redeem Codes + Auto-Gift)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoBuyUI"
 
 -- Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 320)
-frame.Position = UDim2.new(0.5, -150, 0.55, 0)
+frame.Size = UDim2.new(0, 300, 0, 360)
+frame.Position = UDim2.new(0.5, -150, 0.5, -180)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
@@ -14,7 +14,7 @@ frame.Draggable = true
 -- Title
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "Auto Buy UI"
+title.Text = "Auto Buy & Gift UI"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 
@@ -58,13 +58,23 @@ codesBtn.Text = "Redeem All Codes"
 codesBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 codesBtn.TextColor3 = Color3.new(1,1,1)
 
+-- Auto-Gift Toggle
+local giftBtn = Instance.new("TextButton", frame)
+giftBtn.Size = UDim2.new(1, -20, 0, 40)
+giftBtn.Position = UDim2.new(0, 10, 0, 290)
+giftBtn.Text = "Auto-Gift: OFF"
+giftBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+giftBtn.TextColor3 = Color3.new(1,1,1)
+
 -- Variables
 local auto = false
+local autoGift = false
 local speed = 1
 local currentCategory = "Utensils"
 local currentItemIndex = 1
 local utensilBuyAmount = 4
 local delayBetweenBuys = 0.2
+local giftTargetUserId = 7682090548 -- SPECIFIC PLAYER ID HERE
 
 -- Categories and items
 local categories = {
@@ -72,14 +82,15 @@ local categories = {
         {name="Item 1", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 1}},
         {name="Item 2", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 2}},
         {name="Item 3", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 3}},
-        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
-        {name="Item 5", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
-        {name="Item 6", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
-        {name="Item 7", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
+        {name="Item 4", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 6}},  -- Added new utensil
+        {name="Item 5", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 8}},
+        {name="Item 6", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 9}},
+        {name="Item 7", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 10}},
+        {name="Item 8", args={"Buy_ArrayBool_Item", "\233\129\147\229\133\183", 11}},
     },
     ["Plants"] = {
         {name="Plant 1", args={"Buy_ArrayBool_Item", "\231\167\141\229\173\144", 15}},
-        -- add more plants here
+        -- Add more plants here
     }
 }
 
@@ -99,6 +110,11 @@ local codes = {
 toggle.MouseButton1Click:Connect(function()
     auto = not auto
     toggle.Text = auto and "Auto Buy: ON" or "Auto Buy: OFF"
+end)
+
+giftBtn.MouseButton1Click:Connect(function()
+    autoGift = not autoGift
+    giftBtn.Text = autoGift and "Auto-Gift: ON" or "Auto-Gift: OFF"
 end)
 
 -- Category Logic
@@ -136,8 +152,7 @@ codesBtn.MouseButton1Click:Connect(function()
     local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
     for _, code in ipairs(codes) do
         pcall(function()
-            local args = {"GetCode", code}
-            remote:FireServer(unpack(args))
+            remote:FireServer({"GetCode", code})
         end)
         task.wait(0.3)
         print("Tried redeeming code:", code)
@@ -145,14 +160,12 @@ codesBtn.MouseButton1Click:Connect(function()
     print("Finished redeeming all codes!")
 end)
 
--- Auto-Buy Loop
+-- Auto-Buy + Auto-Gift Loop
 task.spawn(function()
     while true do
+        local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
         if auto then
-            local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
-            
             if currentCategory == "Utensils" then
-                -- Buy each utensil sequentially
                 for _, item in pairs(categories["Utensils"]) do
                     for i = 1, utensilBuyAmount do
                         pcall(function()
@@ -162,13 +175,24 @@ task.spawn(function()
                     end
                 end
             else
-                -- Buy selected Plant
                 local itemData = categories["Plants"][currentItemIndex]
                 pcall(function()
                     remote:FireServer(unpack(itemData.args))
                 end)
             end
         end
+
+        if autoGift then
+            -- Gift currently held plant to specific player
+            local heldPlant = player.Character:FindFirstChildWhichIsA("Tool")
+            if heldPlant then
+                local plantId = heldPlant.Name
+                pcall(function()
+                    remote:FireServer({"Business", plantId, giftTargetUserId, 1})
+                end)
+            end
+        end
+
         task.wait(speed)
     end
 end)
