@@ -157,7 +157,7 @@ local codes = {
     "NEWFRRUIT1","NEWFRRUIT2",
     "SINP5",
     "Christmas1","Christmas2","Christmas3",
-    "UPDATE1","UPDATE2","UPDATE3",
+    "UPDATE1","UPDATE2","UPDATE3","CRYSTAL1","CRYSTAL2","ITEMS100",
     "FUSE777","BEST999","NEW666",
     "VIP888","GROW888","REDRESS","KGFRUIT"
 }
