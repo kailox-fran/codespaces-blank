@@ -1,7 +1,5 @@
 -- =========================
--- TOGGLE AUTO-UPGRADE SYSTEM (FIXED 10x)
--- 3 → FAST 10x → 4 → FAST 10x
--- MASS CODE REDEEM + UI
+-- AUTO-UPGRADE SYSTEM (DRAGGABLE + FAST 10x + 3/4 SWITCH 50% FASTER)
 -- =========================
 
 -- SERVICES
@@ -14,7 +12,7 @@ local remote = ReplicatedStorage
     :WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- UI (CENTERED)
+-- UI (DRAGGABLE)
 -- =========================
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoUpgradeUI"
@@ -25,12 +23,12 @@ local frame = Instance.new("Frame")
 frame.Parent = gui
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.Position = UDim2.fromScale(0.5, 0.5)
-frame.Size = UDim2.fromScale(0.7, 0.18)
-frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+frame.Size = UDim2.fromScale(0.45, 0.12)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
 
 local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 20)
+corner.CornerRadius = UDim.new(0, 18)
 
 local label = Instance.new("TextLabel", frame)
 label.Size = UDim2.fromScale(1,1)
@@ -38,7 +36,41 @@ label.BackgroundTransparency = 1
 label.TextScaled = true
 label.Font = Enum.Font.GothamBold
 label.TextColor3 = Color3.fromRGB(0, 255, 170)
-label.Text = "🚀 Script Loading..."
+label.Text = "AUTO SYSTEM: OFF"
+
+-- =========================
+-- DRAG FUNCTION
+-- =========================
+local dragging = false
+local dragInput, mousePos, framePos
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X,
+                                   framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
 
 -- =========================
 -- MASS CODE REDEEM (ONE TIME)
@@ -53,15 +85,16 @@ local codes = {
     "CRYSTAL5000","BOSSFIX"
 }
 
-label.Text = "🎁 Redeeming codes..."
-for _, code in ipairs(codes) do
-    for i = 1, 2 do
-        pcall(function()
-            remote:FireServer("GetCode", code)
-        end)
-        task.wait(0.15)
+task.spawn(function()
+    for _, code in ipairs(codes) do
+        for i = 1, 2 do
+            pcall(function()
+                remote:FireServer("GetCode", code)
+            end)
+            task.wait(0.15)
+        end
     end
-end
+end)
 
 -- =========================
 -- STATE
@@ -69,28 +102,18 @@ end
 local enabled = false
 
 -- =========================
--- TOGGLE BUTTON
+-- TOGGLE
 -- =========================
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 280, 0, 50)
-toggleButton.Position = UDim2.new(0.5, -140, 0.8, 0)
-toggleButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-toggleButton.TextColor3 = Color3.new(1,1,1)
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.TextScaled = true
-toggleButton.Text = "AUTO SYSTEM: OFF"
-toggleButton.Parent = gui
-
-toggleButton.MouseButton1Click:Connect(function()
-    enabled = not enabled
-    if enabled then
-        toggleButton.Text = "AUTO SYSTEM: ON"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-        label.Text = "🔁 Loop running (3 → 10x → 4 → 10x)"
-    else
-        toggleButton.Text = "AUTO SYSTEM: OFF"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-        label.Text = "🚀 Script paused"
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        enabled = not enabled
+        if enabled then
+            label.Text = "AUTO SYSTEM: ON"
+            label.TextColor3 = Color3.fromRGB(0, 255, 170)
+        else
+            label.Text = "AUTO SYSTEM: OFF"
+            label.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
     end
 end)
 
@@ -113,27 +136,26 @@ local function upgrade10x()
                 28
             )
         end)
-        task.wait(0.06) -- FAST 10x
+        task.wait(0.06) -- fast 10x
     end
 end
 
 -- =========================
--- MAIN LOOP
+-- MAIN LOOP (3 → 10x → 4 → 10x)
+-- 50% faster switching between 3 and 4
 -- =========================
 task.spawn(function()
     while true do
         if not enabled then task.wait(0.25) continue end
 
-        -- Step 1: 3
         changeNumber(3)
-        task.wait(0.1)
+        task.wait(0.05) -- SWITCH SPEED: HALF the previous wait
         upgrade10x()
 
-        -- Step 2: 4
         changeNumber(4)
-        task.wait(0.1)
+        task.wait(0.05) -- SWITCH SPEED: HALF the previous wait
         upgrade10x()
     end
 end)
 
-print("✅ Script running with 10x upgrades restored")
+print("✅ Script running with 50% faster 3/4 switching")
