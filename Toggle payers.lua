@@ -10,28 +10,42 @@ local remote = ReplicatedStorage
     :WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- SIMPLE UI
 -- =========================
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.Name = "StatusUI"
+-- UI (CENTERED & MOBILE SAFE)
+-- =========================
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromScale(0.6, 0.15)
-frame.Position = UDim2.fromScale(0.2, 0.05)
-frame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+local gui = Instance.new("ScreenGui")
+gui.Name = "StatusUI"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Parent = gui
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.fromScale(0.5, 0.5) -- CENTER
+frame.Size = UDim2.fromScale(0.7, 0.18)
+frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 frame.BorderSizePixel = 0
-frame.BackgroundTransparency = 0.1
+frame.BackgroundTransparency = 0.05
 
 local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 16)
+corner.CornerRadius = UDim.new(0, 20)
 
-local label = Instance.new("TextLabel", frame)
-label.Size = UDim2.fromScale(1,1)
+local stroke = Instance.new("UIStroke", frame)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(0, 255, 170)
+
+local label = Instance.new("TextLabel")
+label.Parent = frame
+label.Size = UDim2.fromScale(1, 1)
 label.BackgroundTransparency = 1
 label.TextScaled = true
 label.Font = Enum.Font.GothamBold
-label.TextColor3 = Color3.fromRGB(0,255,170)
-label.Text = "🚀 Script Initializing..."
+label.TextColor3 = Color3.fromRGB(0, 255, 170)
+label.Text = "🚀 SCRIPT LOADING..."
 
 -- =========================
 -- MASS CODE REDEEM (ONE TIME)
