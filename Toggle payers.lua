@@ -1,9 +1,9 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM (CLICKABLE TOGGLE)
+-- 📦 MOBILE-FRIENDLY AUTO-UPGRADE SYSTEM
 -- 3 → 4 → 5 → 6 → 7
--- 2x upgrade each
+-- 2x upgrades per number
 -- 0.4s switching delay
--- Mass code redeem
+-- Clickable toggle UI (mobile-friendly)
 -- =========================
 
 -- SERVICES
@@ -14,37 +14,45 @@ local player = Players.LocalPlayer
 local remote = ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- UI
+-- UI SETUP
 -- =========================
-local gui = Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "AutoUpgradeUI"
 gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.AnchorPoint = Vector2.new(0.5, 0.5)
-frame.Position = UDim2.fromScale(0.5, 0.5)
-frame.Size = UDim2.fromScale(0.45, 0.12)
-frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-frame.BorderSizePixel = 0
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 18)
+frame.Size = UDim2.new(0, 360, 0, 120)
+frame.Position = UDim2.new(0.5, -180, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.ClipsDescendants = true
 
-local label = Instance.new("TextLabel", frame)
-label.Size = UDim2.fromScale(1, 1)
-label.BackgroundTransparency = 1
-label.TextScaled = true
-label.Font = Enum.Font.GothamBold
-label.Text = "AUTO SYSTEM: OFF"
-label.TextColor3 = Color3.fromRGB(255, 0, 0)
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "📦 Auto Upgrade"
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+title.TextColor3 = Color3.fromRGB(255,255,255)
+
+local toggleBtn = Instance.new("TextButton", frame)
+toggleBtn.Size = UDim2.new(0.9,0,0,50)
+toggleBtn.Position = UDim2.new(0.05,0,0.5,0)
+toggleBtn.Text = "Auto Upgrade: OFF"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextScaled = true
+toggleBtn.TextColor3 = Color3.fromRGB(255,0,0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,100)
 
 -- =========================
--- CLICKABLE TOGGLE
+-- STATE
 -- =========================
 local enabled = false
-frame.MouseButton1Click:Connect(function()
+local kgfruitRedeemed = false
+
+toggleBtn.MouseButton1Click:Connect(function()
     enabled = not enabled
-    label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
-    label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
+    toggleBtn.Text = enabled and "Auto Upgrade: ON" or "Auto Upgrade: OFF"
+    toggleBtn.TextColor3 = enabled and Color3.fromRGB(0,255,170) or Color3.fromRGB(255,0,0)
 end)
 
 -- =========================
@@ -61,7 +69,6 @@ local codes = {
 }
 
 task.spawn(function()
-    task.wait(1)
     for _, code in ipairs(codes) do
         for i = 1, 2 do
             pcall(function()
@@ -77,42 +84,38 @@ end)
 -- =========================
 local function changeNumber(num)
     pcall(function()
-        remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140", num)
+        remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",num)
     end)
 end
 
-local function upgrade2x(num)
+local function upgrade2x()
     for i = 1, 2 do
-        if not enabled then return end
-        changeNumber(num)
-        task.wait(0.05)
+        if not enabled then break end
         pcall(function()
             remote:FireServer("Business","\229\143\152\229\140\150_\229\174\160\231\137\169",28)
         end)
-        task.wait(0.07)
+        task.wait(0.06)
     end
 end
 
 -- =========================
 -- MAIN LOOP
--- 3 → 4 → 5 → 6 → 7
--- 0.4s switch delay
 -- =========================
 local numbers = {3,4,5,6,7}
 
 task.spawn(function()
     while true do
-        if not enabled then
-            task.wait(0.2)
-        else
+        if enabled then
             for _, num in ipairs(numbers) do
                 if not enabled then break end
                 changeNumber(num)
                 task.wait(0.4)
-                upgrade2x(num)
+                upgrade2x()
             end
+        else
+            task.wait(0.25)
         end
     end
 end)
 
-print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching")
+print("✅ Mobile-friendly auto-upgrade running: 3→7 with 2x upgrades")
