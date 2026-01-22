@@ -1,5 +1,5 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM (CLICKABLE TOGGLE)
+-- AUTO-UPGRADE SYSTEM (MOBILE-FRIENDLY CLICK TOGGLE)
 -- 3 → 4 → 5 → 6 → 7
 -- 2x upgrade each
 -- 0.4s switching delay
@@ -9,11 +9,10 @@
 -- SERVICES
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
-local remote = ReplicatedStorage
-    :WaitForChild("RemoteEvent")
-    :WaitForChild("ServerRemoteEvent")
+local remote = ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 
 -- =========================
 -- UI
@@ -40,11 +39,12 @@ label.Text = "AUTO SYSTEM: OFF"
 label.TextColor3 = Color3.fromRGB(255, 0, 0)
 
 -- =========================
--- CLICKABLE TOGGLE
+-- CLICKABLE / TOUCH TOGGLE
 -- =========================
 local enabled = false
 frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
         enabled = not enabled
         label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
         label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
@@ -65,7 +65,7 @@ local codes = {
 }
 
 task.spawn(function()
-    task.wait(1) -- short delay so GUI loads first
+    task.wait(1)
     for _, code in ipairs(codes) do
         for i = 1, 2 do
             pcall(function()
@@ -119,4 +119,4 @@ task.spawn(function()
     end
 end)
 
-print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching")
+print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching | Mobile-ready toggle")
