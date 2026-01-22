@@ -1,7 +1,7 @@
 -- =========================
 -- 📦 MOBILE AUTO-UPGRADE + CODES
 -- 3 → 4 → 5 → 6 → 7
--- 3 upgrades per number
+-- 25 upgrades per number
 -- Toggle-enabled
 -- =========================
 
@@ -89,8 +89,8 @@ local function changeNumber(num)
     end)
 end
 
-local function upgrade3x()
-    for i = 1,3 do
+local function upgrade25x()
+    for i = 1,25 do
         if not enabled then break end
         pcall(function()
             remote:FireServer("Business","\229\143\152\229\140\150_\229\174\160\231\137\169",28)
@@ -108,8 +108,8 @@ task.spawn(function()
             for _, num in ipairs(numbers) do
                 if not enabled then break end
                 changeNumber(num)
-                upgrade3x()
-                task.wait(0.4) -- switch to next number
+                upgrade25x()
+                task.wait(0.6) -- switch to next number
             end
         else
             task.wait(0.25)
@@ -117,4 +117,4 @@ task.spawn(function()
     end
 end)
 
-print("✅ Mobile auto-upgrade script running")
+print("✅ Mobile auto-upgrade script running with 25x upgrades per number")
