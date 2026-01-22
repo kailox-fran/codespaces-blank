@@ -1,16 +1,14 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM (FINAL FIXED)
+-- AUTO-UPGRADE SYSTEM (CLICKABLE TOGGLE)
 -- 3 → 4 → 5 → 6 → 7
 -- 2x upgrade each
 -- 0.4s switching delay
--- Draggable UI + double-click toggle
 -- Mass code redeem
 -- =========================
 
 -- SERVICES
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local remote = ReplicatedStorage
@@ -42,58 +40,14 @@ label.Text = "AUTO SYSTEM: OFF"
 label.TextColor3 = Color3.fromRGB(255, 0, 0)
 
 -- =========================
--- DRAG SYSTEM
--- =========================
-local dragging, dragInput, startPos, startFramePos
-
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        startPos = input.Position
-        startFramePos = frame.Position
-    end
-end)
-
-frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input == dragInput then
-        local delta = input.Position - startPos
-        frame.Position = UDim2.new(
-            startFramePos.X.Scale,
-            startFramePos.X.Offset + delta.X,
-            startFramePos.Y.Scale,
-            startFramePos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
--- =========================
--- DOUBLE-CLICK TO TOGGLE
+-- CLICKABLE TOGGLE
 -- =========================
 local enabled = false
-local lastClick = 0
-local clickThreshold = 0.35
-
 frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local now = tick()
-        if now - lastClick < clickThreshold then
-            enabled = not enabled
-            label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
-            label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
-        end
-        lastClick = now
+        enabled = not enabled
+        label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
+        label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
     end
 end)
 
@@ -111,7 +65,7 @@ local codes = {
 }
 
 task.spawn(function()
-    task.wait(2) -- short delay so GUI loads first
+    task.wait(1) -- short delay so GUI loads first
     for _, code in ipairs(codes) do
         for i = 1, 2 do
             pcall(function()
@@ -127,34 +81,28 @@ end)
 -- =========================
 local function changeNumber(num)
     pcall(function()
-        remote:FireServer(
-            "Change_ArrayBool_Item",
-            "\230\137\139\231\137\140",
-            num
-        )
+        remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140", num)
     end)
 end
 
 local function upgrade2x(num)
     for i = 1, 2 do
         if not enabled then return end
-        changeNumber(num) -- force correct slot
+        changeNumber(num)
         task.wait(0.05)
         pcall(function()
-            remote:FireServer(
-                "Business",
-                "\229\143\152\229\140\150_\229\174\160\231\137\169",
-                28
-            )
+            remote:FireServer("Business","\229\143\152\229\140\150_\229\174\160\231\137\169",28)
         end)
         task.wait(0.07)
     end
 end
 
 -- =========================
--- MAIN LOOP (STABLE)
+-- MAIN LOOP
+-- 3 → 4 → 5 → 6 → 7
+-- 0.4s switch delay
 -- =========================
-local numbers = {3, 4, 5, 6, 7}
+local numbers = {3,4,5,6,7}
 
 task.spawn(function()
     while true do
@@ -171,4 +119,4 @@ task.spawn(function()
     end
 end)
 
-print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s")
+print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching")
