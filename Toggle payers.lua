@@ -1,5 +1,5 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM (MOBILE-FRIENDLY CLICK TOGGLE)
+-- AUTO-UPGRADE SYSTEM (CLICKABLE TOGGLE)
 -- 3 → 4 → 5 → 6 → 7
 -- 2x upgrade each
 -- 0.4s switching delay
@@ -9,7 +9,6 @@
 -- SERVICES
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local remote = ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
@@ -39,16 +38,13 @@ label.Text = "AUTO SYSTEM: OFF"
 label.TextColor3 = Color3.fromRGB(255, 0, 0)
 
 -- =========================
--- CLICKABLE / TOUCH TOGGLE
+-- CLICKABLE TOGGLE
 -- =========================
 local enabled = false
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        enabled = not enabled
-        label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
-        label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
-    end
+frame.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
+    label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
 end)
 
 -- =========================
@@ -119,4 +115,4 @@ task.spawn(function()
     end
 end)
 
-print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching | Mobile-ready toggle")
+print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s switching")
