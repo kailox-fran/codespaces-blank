@@ -98,7 +98,7 @@ local function upgrade10x()
 		pcall(function()
 			remote:FireServer(unpack(args))
 		end)
-		task.wait(0.05)
+		task.wait(0.001)
 	end
 end
 
@@ -122,7 +122,7 @@ task.spawn(function()
 				upgrade10x()
 			end
 		else
-			task.wait(0.25)
+			task.wait(0.1)
 		end
 	end
 end)
@@ -134,7 +134,7 @@ local codes = {
 	"RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE",
 	"NEWFRRUIT1","NEWFRRUIT2","SINP5",
 	"Christmas1","Christmas2","Christmas3",
-	"UPDATE1","UPDATE2","UPDATE3","update4",
+	"UPDATE1","UPDATE3","update4",
 	"FUSE777","BEST999","NEW666","VIP888","GROW888",
 	"REDRESS","KGFRUIT","CRYSTAL1","CRYSTAL2",
 	"CRYSTAL5000","BOSSFIX"
