@@ -1,7 +1,7 @@
 -- =========================
 -- MOBILE AUTO-UPGRADE 3→7 + SAFE CODE REDEMPTION
 -- 10x upgrade per number, 0.4s delay
--- Toggle UI for mobile
+-- Toggle UI for mobile (DRAGGABLE)
 -- =========================
 
 local Players = game:GetService("Players")
@@ -11,7 +11,7 @@ local player = Players.LocalPlayer
 local remote = ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- UI (TOGGLE)
+-- UI (TOGGLE & DRAGGABLE)
 -- =========================
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoUpgradeUI"
@@ -24,14 +24,16 @@ frame.Position = UDim2.new(0.5, -160, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 frame.AnchorPoint = Vector2.new(0.5,0)
+frame.Parent = gui
 
-local label = Instance.new("TextLabel", frame)
+local label = Instance.new("TextLabel")
 label.Size = UDim2.new(1,0,1,0)
 label.BackgroundTransparency = 1
 label.TextScaled = true
 label.Font = Enum.Font.GothamBold
 label.TextColor3 = Color3.fromRGB(255,0,0)
 label.Text = "AUTO SYSTEM: OFF"
+label.Parent = frame
 
 -- =========================
 -- TOGGLE STATE
@@ -47,6 +49,38 @@ frame.InputBegan:Connect(function(input)
 			label.Text = "AUTO SYSTEM: OFF"
 			label.TextColor3 = Color3.fromRGB(255,0,0)
 		end
+	end
+end)
+
+-- =========================
+-- DRAG FUNCTIONALITY
+-- =========================
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+frame.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.Touch then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
 	end
 end)
 
@@ -116,7 +150,6 @@ local function safeRedeem(code)
 end
 
 task.spawn(function()
-	-- Only redeem once at script start
 	for _, code in ipairs(codes) do
 		safeRedeem(code)
 	end
