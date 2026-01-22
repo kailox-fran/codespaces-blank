@@ -1,7 +1,7 @@
 -- =========================
--- MOBILE AUTO-UPGRADE 3→7
--- 10x upgrade per number
--- 0.4s delay between upgrades
+-- MOBILE AUTO-UPGRADE 3→7 + SAFE CODE REDEMPTION
+-- 10x upgrade per number, 0.4s delay
+-- Toggle UI for mobile
 -- =========================
 
 local Players = game:GetService("Players")
@@ -19,7 +19,7 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 320, 0, 80)
+frame.Size = UDim2.new(0, 320, 0, 100)
 frame.Position = UDim2.new(0.5, -160, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
@@ -33,7 +33,9 @@ label.Font = Enum.Font.GothamBold
 label.TextColor3 = Color3.fromRGB(255,0,0)
 label.Text = "AUTO SYSTEM: OFF"
 
--- Toggle ON/OFF
+-- =========================
+-- TOGGLE STATE
+-- =========================
 local enabled = false
 frame.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.Touch then
@@ -62,7 +64,7 @@ local function upgrade10x()
 		pcall(function()
 			remote:FireServer(unpack(args))
 		end)
-		task.wait(0.3)
+		task.wait(0.4)
 	end
 end
 
@@ -91,4 +93,34 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Auto-upgrade 3→7 active with 10x upgrades per number")
+-- =========================
+-- SAFE CODE REDEMPTION
+-- =========================
+local codes = {
+	"RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE",
+	"NEWFRRUIT1","NEWFRRUIT2","SINP5",
+	"Christmas1","Christmas2","Christmas3",
+	"UPDATE1","UPDATE2","UPDATE3","update4",
+	"FUSE777","BEST999","NEW666","VIP888","GROW888",
+	"REDRESS","KGFRUIT","CRYSTAL1","CRYSTAL2",
+	"CRYSTAL5000","BOSSFIX"
+}
+
+local function safeRedeem(code)
+	for i = 1,3 do
+		pcall(function()
+			remote:FireServer("GetCode", code)
+		end)
+		task.wait(0.4)
+	end
+end
+
+task.spawn(function()
+	-- Only redeem once at script start
+	for _, code in ipairs(codes) do
+		safeRedeem(code)
+	end
+	print("✅ All codes attempted!")
+end)
+
+print("✅ Auto-upgrade + code redemption active!")
