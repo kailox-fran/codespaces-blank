@@ -87,8 +87,8 @@ end)
 -- =========================
 -- FUNCTIONS
 -- =========================
-local function upgrade10x()
-	for i = 1,10 do
+local function upgrade3x()
+	for i = 1,3 do
 		if not enabled then break end
 		local args = {
 			"Business",
@@ -119,7 +119,7 @@ task.spawn(function()
 			for _, num in ipairs(numbers) do
 				if not enabled then break end
 				changeNumber(num)
-				upgrade10x()
+				upgrade3x()
 			end
 		else
 			task.wait(0.37)
