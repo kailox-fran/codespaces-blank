@@ -131,7 +131,7 @@ end)
 -- SAFE CODE REDEMPTION
 -- =========================
 local codes = {
-	"RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE",
+	"RELEASE1","RELEASE2","1KLIKE","5KLIKE",
 	"NEWFRRUIT1","NEWFRRUIT2","SINP5",
 	"Christmas1","Christmas2","Christmas3",
 	"UPDATE1","UPDATE3","update4",
