@@ -1,5 +1,5 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM
+-- AUTO-UPGRADE SYSTEM (FINAL)
 -- 3 → 4 → 5 → 6 → 7
 -- 2x upgrade each
 -- 0.4s switching delay
@@ -16,21 +16,19 @@ local remote = ReplicatedStorage
     :WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- UI (DRAGGABLE)
+-- UI
 -- =========================
 local gui = Instance.new("ScreenGui")
 gui.Name = "AutoUpgradeUI"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame")
-frame.Parent = gui
+local frame = Instance.new("Frame", gui)
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.Position = UDim2.fromScale(0.5, 0.5)
 frame.Size = UDim2.fromScale(0.45, 0.12)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
-
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 18)
 
 local label = Instance.new("TextLabel", frame)
@@ -51,12 +49,6 @@ frame.InputBegan:Connect(function(input)
         dragging = true
         startPos = input.Position
         startFramePos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
     end
 end)
 
@@ -78,6 +70,30 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- =========================
+-- TOGGLE (DOUBLE CLICK)
+-- =========================
+local enabled = false
+local lastClick = 0
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local now = tick()
+        if now - lastClick < 0.35 then
+            enabled = not enabled
+            label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
+            label.TextColor3 = enabled and Color3.fromRGB(0,255,170) or Color3.fromRGB(255,0,0)
+        end
+        lastClick = now
+    end
+end)
+
 -- =========================
 -- MASS CODE REDEEM (ONE TIME)
 -- =========================
@@ -92,31 +108,13 @@ local codes = {
 }
 
 task.spawn(function()
+    task.wait(2)
     for _, code in ipairs(codes) do
         for i = 1, 2 do
             pcall(function()
                 remote:FireServer("GetCode", code)
             end)
             task.wait(0.15)
-        end
-    end
-end)
-
--- =========================
--- STATE + TOGGLE
--- =========================
-local enabled = false
-
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        enabled = not enabled
-        if enabled then
-            label.Text = "AUTO SYSTEM: ON"
-            label.TextColor3 = Color3.fromRGB(0, 255, 170)
-        else
-            label.Text = "AUTO SYSTEM: OFF"
-            label.TextColor3 = Color3.fromRGB(255, 0, 0)
         end
     end
 end)
@@ -134,9 +132,11 @@ local function changeNumber(num)
     end)
 end
 
-local function upgrade2x()
+local function upgrade2x(num)
     for i = 1, 2 do
-        if not enabled then break end
+        if not enabled then return end
+        changeNumber(num) -- force correct slot
+        task.wait(0.05)
         pcall(function()
             remote:FireServer(
                 "Business",
@@ -144,30 +144,28 @@ local function upgrade2x()
                 28
             )
         end)
-        task.wait(0.06)
+        task.wait(0.07)
     end
 end
 
 -- =========================
--- MAIN LOOP
--- 3 → 4 → 5 → 6 → 7
--- 0.4s switch delay
+-- MAIN LOOP (STABLE)
 -- =========================
 local numbers = {3, 4, 5, 6, 7}
 
 task.spawn(function()
     while true do
         if not enabled then
-            task.wait(0.25)
+            task.wait(0.2)
         else
             for _, num in ipairs(numbers) do
                 if not enabled then break end
                 changeNumber(num)
-                task.wait(0.4) -- switch timing
-                upgrade2x()
+                task.wait(0.4)
+                upgrade2x(num)
             end
         end
     end
 end)
 
-print("✅ Auto system running: 3→7 with 2x upgrades")
+print("✅ Auto system running | Codes + 3→7 | 2x | 0.4s")
