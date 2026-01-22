@@ -88,7 +88,7 @@ end)
 -- FUNCTIONS
 -- =========================
 local function upgrade3x()
-	for i = 1,3 do
+	for i = 1,7 do
 		if not enabled then break end
 		local args = {
 			"Business",
