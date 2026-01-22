@@ -98,7 +98,7 @@ local function upgrade10x()
 		pcall(function()
 			remote:FireServer(unpack(args))
 		end)
-		task.wait(0.1)
+		task.wait(0.05)
 	end
 end
 
