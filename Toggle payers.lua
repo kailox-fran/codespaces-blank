@@ -1,12 +1,10 @@
 -- =========================
--- 📦 MOBILE-FRIENDLY AUTO-UPGRADE SYSTEM
+-- 📦 MOBILE AUTO-UPGRADE + CODES
 -- 3 → 4 → 5 → 6 → 7
--- 2x upgrades per number
--- 0.4s switching delay
--- Clickable toggle UI (mobile-friendly)
+-- 3 upgrades per number
+-- Toggle-enabled
 -- =========================
 
--- SERVICES
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
@@ -14,49 +12,32 @@ local player = Players.LocalPlayer
 local remote = ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("ServerRemoteEvent")
 
 -- =========================
--- UI SETUP
+-- UI (TOGGLE)
 -- =========================
-local gui = Instance.new("ScreenGui", player.PlayerGui)
+local gui = Instance.new("ScreenGui")
 gui.Name = "AutoUpgradeUI"
 gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 360, 0, 120)
-frame.Position = UDim2.new(0.5, -180, 0.1, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-frame.ClipsDescendants = true
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 320, 0, 80)
+frame.Position = UDim2.new(0.5, -160, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BorderSizePixel = 0
+frame.AnchorPoint = Vector2.new(0.5,0)
 
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,40)
-title.BackgroundTransparency = 1
-title.Text = "📦 Auto Upgrade"
-title.Font = Enum.Font.GothamBold
-title.TextScaled = true
-title.TextColor3 = Color3.fromRGB(255,255,255)
+local label = Instance.new("TextLabel", frame)
+label.Size = UDim2.new(1,0,1,0)
+label.BackgroundTransparency = 1
+label.TextScaled = true
+label.Font = Enum.Font.GothamBold
+label.TextColor3 = Color3.fromRGB(255,0,0)
+label.Text = "AUTO SYSTEM: OFF"
 
-local toggleBtn = Instance.new("TextButton", frame)
-toggleBtn.Size = UDim2.new(0.9,0,0,50)
-toggleBtn.Position = UDim2.new(0.05,0,0.5,0)
-toggleBtn.Text = "Auto Upgrade: OFF"
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextScaled = true
-toggleBtn.TextColor3 = Color3.fromRGB(255,0,0)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,100)
+frame.Parent = gui
 
 -- =========================
--- STATE
--- =========================
-local enabled = false
-local kgfruitRedeemed = false
-
-toggleBtn.MouseButton1Click:Connect(function()
-    enabled = not enabled
-    toggleBtn.Text = enabled and "Auto Upgrade: ON" or "Auto Upgrade: OFF"
-    toggleBtn.TextColor3 = enabled and Color3.fromRGB(0,255,170) or Color3.fromRGB(255,0,0)
-end)
-
--- =========================
--- MASS CODE REDEEM (ONE TIME)
+-- MASS CODE REDEEM
 -- =========================
 local codes = {
     "RELEASE1","RELEASE2","RELEASE3","1KLIKE","5KLIKE",
@@ -68,49 +49,67 @@ local codes = {
     "CRYSTAL5000","BOSSFIX"
 }
 
+local function safeRedeem(code)
+    for i = 1,3 do
+        pcall(function()
+            remote:FireServer("GetCode", code)
+        end)
+        task.wait(0.15)
+    end
+end
+
 task.spawn(function()
     for _, code in ipairs(codes) do
-        for i = 1, 2 do
-            pcall(function()
-                remote:FireServer("GetCode", code)
-            end)
-            task.wait(0.15)
-        end
+        safeRedeem(code)
+    end
+    print("✅ All codes attempted")
+end)
+
+-- =========================
+-- TOGGLE STATE
+-- =========================
+local enabled = false
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        enabled = not enabled
+        label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
+        label.TextColor3 = enabled and Color3.fromRGB(0,255,170) or Color3.fromRGB(255,0,0)
     end
 end)
 
 -- =========================
--- FUNCTIONS
+-- UPGRADE FUNCTIONS
 -- =========================
+local numbers = {3,4,5,6,7}
+
 local function changeNumber(num)
+    local args = {"Change_ArrayBool_Item","\230\137\139\231\137\140",num}
     pcall(function()
-        remote:FireServer("Change_ArrayBool_Item","\230\137\139\231\137\140",num)
+        remote:FireServer(unpack(args))
     end)
 end
 
-local function upgrade2x()
-    for i = 1, 2 do
+local function upgrade3x()
+    for i = 1,3 do
         if not enabled then break end
         pcall(function()
             remote:FireServer("Business","\229\143\152\229\140\150_\229\174\160\231\137\169",28)
         end)
-        task.wait(0.06)
+        task.wait(0.1)
     end
 end
 
 -- =========================
 -- MAIN LOOP
 -- =========================
-local numbers = {3,4,5,6,7}
-
 task.spawn(function()
     while true do
         if enabled then
             for _, num in ipairs(numbers) do
                 if not enabled then break end
                 changeNumber(num)
-                task.wait(0.4)
-                upgrade2x()
+                upgrade3x()
+                task.wait(0.4) -- switch to next number
             end
         else
             task.wait(0.25)
@@ -118,4 +117,4 @@ task.spawn(function()
     end
 end)
 
-print("✅ Mobile-friendly auto-upgrade running: 3→7 with 2x upgrades")
+print("✅ Mobile auto-upgrade script running")
