@@ -1,8 +1,10 @@
 -- =========================
--- AUTO-UPGRADE SYSTEM (FINAL)
+-- AUTO-UPGRADE SYSTEM (FINAL FIXED)
 -- 3 → 4 → 5 → 6 → 7
 -- 2x upgrade each
 -- 0.4s switching delay
+-- Draggable UI + double-click toggle
+-- Mass code redeem
 -- =========================
 
 -- SERVICES
@@ -77,18 +79,19 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 -- =========================
--- TOGGLE (DOUBLE CLICK)
+-- DOUBLE-CLICK TO TOGGLE
 -- =========================
 local enabled = false
 local lastClick = 0
+local clickThreshold = 0.35
 
 frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         local now = tick()
-        if now - lastClick < 0.35 then
+        if now - lastClick < clickThreshold then
             enabled = not enabled
             label.Text = enabled and "AUTO SYSTEM: ON" or "AUTO SYSTEM: OFF"
-            label.TextColor3 = enabled and Color3.fromRGB(0,255,170) or Color3.fromRGB(255,0,0)
+            label.TextColor3 = enabled and Color3.fromRGB(0, 255, 170) or Color3.fromRGB(255, 0, 0)
         end
         lastClick = now
     end
@@ -108,7 +111,7 @@ local codes = {
 }
 
 task.spawn(function()
-    task.wait(2)
+    task.wait(2) -- short delay so GUI loads first
     for _, code in ipairs(codes) do
         for i = 1, 2 do
             pcall(function()
