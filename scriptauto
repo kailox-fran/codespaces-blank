@@ -80,7 +80,7 @@ submit.MouseButton1Click:Connect(function()
 end)
 
 getLink.MouseButton1Click:Connect(function()
-    setclipboard("https://your-link-here.com")
+    setclipboard("https://link-target.net/2985723/I1RAZKoaeL7n")
     getLink.Text = "📋 Link Copied"
     task.wait(1)
     getLink.Text = "Get Key Link"
