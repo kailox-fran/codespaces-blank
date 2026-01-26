@@ -1,7 +1,3 @@
--- =========================
--- MULTI CODE INFINITE RUNNER UI
--- =========================
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
@@ -9,14 +5,45 @@ local player = Players.LocalPlayer
 local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
 ScreenGui.ResetOnSpawn = false
 
+-- =========================
+-- Floating Open Button
+-- =========================
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.fromOffset(50,50)
+OpenBtn.Position = UDim2.fromScale(0.95,0.05)
+OpenBtn.AnchorPoint = Vector2.new(1,0)
+OpenBtn.Text = "▶"
+OpenBtn.BackgroundColor3 = Color3.fromRGB(60,160,90)
+OpenBtn.TextColor3 = Color3.new(1,1,1)
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.TextSize = 18
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0,12)
+
+-- =========================
+-- Main UI Frame
+-- =========================
 local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.fromScale(0.9, 0.75)
 Main.Position = UDim2.fromScale(0.05, 0.125)
 Main.BackgroundColor3 = Color3.fromRGB(22,22,22)
 Main.BorderSizePixel = 0
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0,18)
+Main.Visible = false -- start hidden
 
+-- Close Button
+local CloseBtn = Instance.new("TextButton", Main)
+CloseBtn.Size = UDim2.fromScale(0.08,0.08)
+CloseBtn.Position = UDim2.fromScale(0.92,0)
+CloseBtn.Text = "✕"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(170,70,70)
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,10)
+
+-- =========================
 -- Title
+-- =========================
 local Title = Instance.new("TextLabel", Main)
 Title.Size = UDim2.fromScale(1, 0.08)
 Title.Text = "♾ Multi Function Runner"
@@ -25,7 +52,9 @@ Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 
--- Code Input
+-- =========================
+-- Code Input Box
+-- =========================
 local CodeBox = Instance.new("TextBox", Main)
 CodeBox.Size = UDim2.fromScale(0.92, 0.28)
 CodeBox.Position = UDim2.fromScale(0.04, 0.1)
@@ -65,29 +94,21 @@ List.BorderSizePixel = 0
 
 local Layout = Instance.new("UIListLayout", List)
 Layout.Padding = UDim.new(0,10)
-
 Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	List.CanvasSize = UDim2.new(0,0,0,Layout.AbsoluteContentSize.Y + 10)
 end)
 
 -- =========================
--- RUNNER ENGINE
+-- Runner Engine
 -- =========================
-
 local runners = {}
 
 local function createRunner(code)
-	local runner = {
-		code = code,
-		running = false,
-		thread = nil
-	}
-
+	local runner = {code=code,running=false,thread=nil}
 	function runner:start()
 		if self.running then return end
 		self.running = true
 		local func = loadstring(self.code)
-
 		self.thread = task.spawn(function()
 			while self.running do
 				pcall(func)
@@ -95,17 +116,9 @@ local function createRunner(code)
 			end
 		end)
 	end
-
-	function runner:stop()
-		self.running = false
-	end
-
+	function runner:stop() self.running=false end
 	return runner
 end
-
--- =========================
--- UI ITEM CREATOR
--- =========================
 
 local function addCodeUI(codeText)
 	local runner = createRunner(codeText)
@@ -157,4 +170,17 @@ AddBtn.MouseButton1Click:Connect(function()
 		addCodeUI(CodeBox.Text)
 		CodeBox.Text = ""
 	end
+end)
+
+-- =========================
+-- Open / Close Buttons
+-- =========================
+OpenBtn.MouseButton1Click:Connect(function()
+	Main.Visible = true
+	OpenBtn.Visible = false
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+	Main.Visible = false
+	OpenBtn.Visible = true
 end)
